@@ -61,6 +61,18 @@ async function main() {
         });
     }, 5000);
 
+    // simulate chat message
+    setTimeout(() => {
+        context.emit({
+            type: 'chat::message',
+            payload: {
+                clientId: 'client A',
+                user: 'alice',
+                message: 'This is fucking lit! :fire: :smile: :thumbsup:'
+            }
+        });
+    }, 6000);
+
     // graceful shutdown
     process.on('SIGINT', async () => {
         for (const p of plugins) {
