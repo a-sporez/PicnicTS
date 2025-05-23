@@ -1,3 +1,4 @@
+// main.js **ENTRY POINT**
 const { create_context } = require('./core/context');
 const { load_plugins } = require('./core/plugin_manager');
 const { subscribe } = require('./core/event_bus');
@@ -9,8 +10,8 @@ async function main() {
     // route all events to plugins
     subscribe(event => {
         plugins.forEach(p => {
-            if (typeof p.handleEvent === 'function') {
-                p.handleEvent(event);
+            if (typeof p.handle_event === 'function') {
+                p.handle_event(event);
             }
         });
     });
@@ -19,6 +20,46 @@ async function main() {
     setTimeout(() => {
         context.emit({ type: 'hello', payload: 'world' });
     }, 1000);
+
+    // simulate stream config update
+    setTimeout(() => {
+        context.emit({
+            type: 'stream::config:update',
+            payload: {
+                title: 'Test Stream Config Update',
+                tags: ['tags1', 'tags2']
+            }
+        });
+    }, 2000);
+
+    // simulate stream config switch
+    setTimeout(() => {
+        context.emit({
+            type: 'stream::config:get'
+        });
+    }, 3000);
+
+    // simulate client config update
+    setTimeout(() => {
+        context.emit({
+            type: 'client::config:update',
+            payload: {
+                clientId: 'client A',
+                config: {
+                    theme: 'theme A',
+                    emotesEnabled: true
+                }
+            }
+        });
+    }, 4000);
+
+    // simulate client config switch
+    setTimeout(() => {
+        context.emit({
+            type: 'client::config:get',
+            payload: { clientId: 'client A' }
+        });
+    }, 5000);
 
     // graceful shutdown
     process.on('SIGINT', async () => {

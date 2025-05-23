@@ -1,3 +1,4 @@
 {
-    "workbench.colorTheme": "monokai-charcoal (orange)"
+    "workbench.colorTheme": "monokai-charcoal (orange)",
+    "workbench.commandPalette.history": 20
 }

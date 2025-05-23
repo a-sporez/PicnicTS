@@ -1,9 +1,10 @@
+// plugins/greeter/index.js
 module.exports = {
     name: 'greeter',
     init: async (context) => {
         context.logger.log('[greeter-plugin] Initialized.');
     },
-    handleEvent: (event) => {
+    handle_event: (event) => {
         if (event.type === 'hello') {
             console.log(`[greeter-plugin] received hello:`, event.payload);
         }
