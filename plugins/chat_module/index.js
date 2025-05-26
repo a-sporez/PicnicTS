@@ -1,6 +1,6 @@
 // plugins/chat_modules/index.js
 
-const { shutdown } = require("../client_config");
+const {shutdown} = require("../client_config");
 
 module.exports = {
     name: 'chat_module',
@@ -14,7 +14,7 @@ module.exports = {
     handle_event: async (event) => {
         if (event.type !== 'chat::message') return;
 
-        const { user, message, clientId } = event.payload;
+        const {user, message, clientId} = event.payload;
 
         const chatEntry = {
             user,
@@ -31,7 +31,7 @@ module.exports = {
         module.exports.context.emit({
             type: 'chat::message:received',
             payload: chatEntry,
-            meta: { plugin: 'chat_module' }
+            meta: {plugin: 'chat_module'}
         });
     },
 

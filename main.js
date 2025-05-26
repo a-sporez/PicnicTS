@@ -1,10 +1,11 @@
 // main.js **ENTRY POINT**
-const { create_context } = require('./core/context');
-const { load_plugins } = require('./core/plugin_manager');
-const { subscribe } = require('./core/event_bus');
+const {create_context} = require('./core/context');
+const {load_plugins} = require('./core/plugin_manager');
+const {subscribe} = require('./core/event_bus');
+
+const context = create_context();
 
 async function main() {
-    const context = create_context();
     const plugins = await load_plugins(context);
 
     // route all events to plugins
@@ -18,7 +19,7 @@ async function main() {
 
     // simulate event after 1s
     setTimeout(() => {
-        context.emit({ type: 'hello', payload: 'world' });
+        context.emit({type: 'hello', payload: 'world'});
     }, 1000);
 
     // simulate stream config update
@@ -57,7 +58,7 @@ async function main() {
     setTimeout(() => {
         context.emit({
             type: 'client::config:get',
-            payload: { clientId: 'client A' }
+            payload: {clientId: 'client A'}
         });
     }, 5000);
 
@@ -83,3 +84,4 @@ async function main() {
 }
 
 main();
+module.exports = context;

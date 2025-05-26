@@ -1,5 +1,5 @@
 // plugins/client_config/index.js
-const { config } = require("dotenv");
+const {config} = require("dotenv");
 
 // in memory config store
 const configs = new Map();
@@ -14,7 +14,7 @@ module.exports = {
     },
 
     handle_event: async (event) => {
-        const { type, payload } = event;
+        const {type, payload} = event;
 
         if (!payload?.clientId) return;
 
