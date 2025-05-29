@@ -1,4 +1,7 @@
 // main.js **ENTRY POINT**
+require('dotenv').config({ path: __dirname + '/.env' });
+console.log('[DEBUG] TOKEN:', process.env.DISCORD_TOKEN);
+console.log('[DEBUG] CHANNEL:', process.env.DISCORD_CHANNEL_ID);
 const {create_context} = require('./core/context');
 const {load_plugins} = require('./core/plugin_manager');
 const {subscribe} = require('./core/event_bus');

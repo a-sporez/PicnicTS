@@ -10,8 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "discord.js": "^14.19.3",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "node-fetch": "^2.7.0",
+    "nvm": "^0.0.4",
     "path": "^0.12.7",
     "tree": "^0.1.3"
   }
