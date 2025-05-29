@@ -5,7 +5,7 @@ Modern JS plugin-based web app.
 
                        +-------------------------+
                        |      Frontend App       |
-                       |    (Next.js + SWR)      |
+                       |         (Vite)          |
                        +-----------+-------------+
                                    |
                         HTTPS/API Calls / WebSocket
@@ -173,3 +173,8 @@ Modern JS plugin-based web app.
 ```
 
 ---
+TODO:
+
+- Mistral Bridge Docs
+- Discord Bridge Docs
+- Server Module Docs
