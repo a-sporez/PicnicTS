@@ -16,8 +16,8 @@ Modern JS plugin-based web app.
                         HTTPS/API Calls / WebSocket
                                    ↓
            +----------------------↓----------------------+
-           |                 API Gateway (optional)      |
-           |      (e.g., express-rate-limit + proxy)     |
+           |                  API Gateway                |
+           |          express-rate-limit + proxy         |
            +----------------------↓----------------------+
                         Auth Headers (JWT from Keycloak)
                                    ↓
