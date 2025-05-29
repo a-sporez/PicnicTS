@@ -1,4 +1,9 @@
 # PicnicJS
+
+**PLUGIN SET TO RUN ON LOCAL HOST DO NOT DEPLOY WITHOUT CHANGING**
+
+Currently the only functionality is a bridge between a discord bot and VPS or localhost. It should work for any LLM with minor adjustments but it has only been tested on Digital Ocean Mistral Nemo Instruct model. Current interface are express and openAPI.
+
 Modern JS plugin-based web app.
 
 ## Component Map
