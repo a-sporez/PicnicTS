@@ -1,6 +1,6 @@
 # PicnicJS
 
-**PLUGIN SET TO RUN ON LOCAL HOST DO NOT DEPLOY WITHOUT CHANGING**
+**DOTENV Variables need to be created to authorize**
 
 Currently the only functionality is a bridge between a discord bot and VPS or localhost. It should work for any LLM with minor adjustments but it has only been tested on Digital Ocean Mistral Nemo Instruct model. Current interface are express and openAPI.
 
@@ -46,14 +46,16 @@ Modern JS plugin-based web app.
 
 | Layer             | Stack / Tools                                    |
 | ----------------- | ------------------------------------------------ |
-| **Frontend**      | Next.js, Tailwind CSS, SWR (data), WebSockets    |
+| **Frontend**      | Go, Vite CSS, SWR (data), WebSockets             |
 | **Auth**          | Keycloak (OIDC/JWT), OAuth2.1 compatible flows   |
 | **Backend**       | Node.js (npm), Express API                       |
-| **Plugins**       | `Command`, `Emote`, `StreamConfigService`, etc.  |
-| **Database**      | Redis (stream/user state), PostgreSQL (optional) |
+| **Plugins**       | `Command`, `Emote`, `StreamConfigService`, `CLI` |
+| **Database**      | Redis (stream/user state), RAG knowledge base    |
 | **Communication** | WebSocket or Redis Pub/Sub                       |
 | **Rate Limits**   | `express-rate-limit`, or Cloudflare WAF          |
 | **Storage**       | Optional: S3/Cloudflare R2 for plugin uploads    |
+
+**DOCUMENTATION IS INCOMPLETE**
 
 ---
 
