@@ -22,7 +22,7 @@ async function main() {
 
     // simulate event after 1s
     setTimeout(() => {
-        context.emit({type: 'hello', payload: 'world'});
+        context.emit({type: 'typeOK', payload: 'payloadOK'});
     }, 1000);
 
     // simulate stream config update
@@ -31,51 +31,51 @@ async function main() {
             type: 'stream::config:update',
             payload: {
                 title: 'Test Stream Config Update',
-                tags: ['tags1', 'tags2']
+                tags: ['tag1', 'tag2']
             }
         });
-    }, 2000);
+    }, 1200);
 
     // simulate stream config switch
     setTimeout(() => {
         context.emit({
             type: 'stream::config:get'
         });
-    }, 3000);
+    }, 1400);
 
     // simulate client config update
     setTimeout(() => {
         context.emit({
             type: 'client::config:update',
             payload: {
-                clientId: 'client A',
+                clientId: 'Client Config OK',
                 config: {
-                    theme: 'theme A',
+                    theme: 'Test Config',
                     emotesEnabled: true
                 }
             }
         });
-    }, 4000);
+    }, 1600);
 
     // simulate client config switch
     setTimeout(() => {
         context.emit({
             type: 'client::config:get',
-            payload: {clientId: 'client A'}
+            payload: {clientId: 'Client Config Switch OK'}
         });
-    }, 5000);
+    }, 1800);
 
     // simulate chat message
     setTimeout(() => {
         context.emit({
             type: 'chat::message',
             payload: {
-                clientId: 'client A',
-                user: 'alice',
-                message: 'This is fucking lit! :fire: :smile: :thumbsup:'
+                clientId: 'Client Chat OK',
+                user: 'abyss',
+                message: 'Chat Messages OK! :fire: :smile: :thumbsup:'
             }
         });
-    }, 6000);
+    }, 2000);
 
     // graceful shutdown
     process.on('SIGINT', async () => {
