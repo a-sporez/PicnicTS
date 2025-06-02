@@ -18,6 +18,11 @@ module.exports = {
         const botAPI = process.env.BOT_API_URL || 'http://localhost:8080/chat';
         const {user, message, channelId} = event.payload;
 
+        const allowedChannelId = process.env.DISCORD_CHANNEL_ID;
+        if (channelId !== allowedChannelId) {
+            return; // skip messages from other channels
+        }
+
         try {
             // forward message to the chatbot's backend
             const res = await fetch(botAPI, {
