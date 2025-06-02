@@ -8,13 +8,21 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
+// userID -> last request timestamp
+var lastSeen = make(map[string]time.Time)
+
+// create context memory map
+var memoryStore = make(map[string][]Message)
+
 // incoming message structure
 type ChatInput struct {
+	UserID  string `json:"user"` // from discord or internal systems
 	Message string `json:"message"`
 }
 
@@ -69,16 +77,48 @@ func handleChat(c *gin.Context) {
 		return
 	}
 
-	reply, err := callMistral(input.Message)
+	// validate input
+	if input.UserID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing user ID"})
+		return
+	}
+
+	now := time.Now() // rate limiter 3s cooldown
+	if last, ok := lastSeen[input.UserID]; ok && now.Sub(last) < 3*time.Second {
+		c.JSON(http.StatusTooManyRequests, gin.H{"error": "Rate limit exceeded."})
+		return
+	}
+	lastSeen[input.UserID] = now
+
+	// store user message in memory
+	memoryStore[input.UserID] = append(memoryStore[input.UserID], Message{
+		Role:    "user",
+		Content: input.Message,
+	})
+
+	reply, err := callMistral(input.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Mistral error"})
 		return
 	}
 
+	// store bot reply in memory
+	memoryStore[input.UserID] = append(memoryStore[input.UserID], Message{
+		Role:    "assistant",
+		Content: reply,
+	})
+
 	c.JSON(http.StatusOK, ChatOutput{Reply: reply})
 }
 
-func callMistral(userMessage string) (string, error) {
+func trimMemory(messages []Message, limit int) []Message {
+	if len(messages) <= limit {
+		return messages
+	}
+	return messages[len(messages)-limit:]
+}
+
+func callMistral(userID string) (string, error) {
 	mistralURL := os.Getenv("MISTRAL_URL")
 	bearerToken := os.Getenv("MISTRAL_TOKEN") // this is safer than hardcoding
 
@@ -86,10 +126,9 @@ func callMistral(userMessage string) (string, error) {
 		log.Fatal("Missing MISTRAL_URL or MISTRAL_TOKEN in .env")
 	}
 
+	history := trimMemory(memoryStore[userID], 20)
 	payload := MistralRequest{
-		Messages: []Message{
-			{Role: "user", Content: userMessage},
-		},
+		Messages:    history, // use context window memory
 		Temperature: 0.7,
 		Stream:      false,
 	}
