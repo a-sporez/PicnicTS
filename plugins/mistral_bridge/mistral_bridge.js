@@ -33,17 +33,25 @@ module.exports = {
 
             const {reply} = await res.json();
 
-            // exit a message back to discord if the bot responded
-            if (reply) {
-                module.exports.context.emit({
-                    type:'discord::message:send',
-                    payload: {
-                        message:`🤖 ${reply}`,
-                        channelId
-                    },
-                    meta: {plugin: 'mistral_bridge'}
-                });
+            console.log('[mistral_bridge] LLM raw reply:', reply);
+            if (!reply || reply.trim() === "") {
+                console.warn('[mistral_bridge] Empty reply from LLM, skipping');
+                return;
             }
+            console.log('[mistral_bridge] emitting msg to discord:', {
+                type: 'discord::message:send',
+                payload: {content: `🤖 ${reply}`, channelId}
+            });
+
+            // em,it a message back to discord if the bot responded
+            module.exports.context.emit({
+                type:'discord::message:send',
+                payload: {
+                    content: `🤖 ${reply}`,
+                    channelId
+                },
+                meta: {plugin: 'mistral_bridge'}
+            });
         } catch (err) {
             module.exports.context.logger.error('[mistral_bridge] error:', err);
         }

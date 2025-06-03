@@ -58,12 +58,26 @@ module.exports = {
     handle_event: async (event) => {
         if (event.type !== 'discord::message:send') return;
 
-        const {message, channelId} = event.payload;
+        const {content, channelId} = event.payload;
 
         // use the provided channel or fallback to default from .env
-        const channel = bot.channels.cache.get(channelId || process.env.DISCORD_CHANNEL_ID);
+        const id = channelId || process.env.DISCORD_CHANNEL_ID;
+        const channel = await bot.channels.fetch(id).catch(err => {
+            console.warn('[discord_bridge] channel fetch failed', err);
+            return null;
+        });
+
+        if (!channel) {
+            console.warn('[discord_bridge] cannot find channel for ID:', id);
+            return;
+        }
+
         if (channel && channel.send) {
-            await channel.send(message);
+            if (!content || typeof content !== 'string' || content.trim() === "") {
+                contextRef.logger.warn('[discord_bridge] Invalid content payload:', content);
+                return;
+            }
+            await channel.send({content});
         }
     },
 
