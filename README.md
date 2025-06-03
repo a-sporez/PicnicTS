@@ -86,6 +86,6 @@ root
 
 ---
 
-[SporeDrop](#documentation/SporeDrop.md)
+[SporeDrop](/#documentation/SporeDrop.md)
 
-[Module Host](#documentation/module_host.md)
+[Module Host](/#documentation/module_host.md)
