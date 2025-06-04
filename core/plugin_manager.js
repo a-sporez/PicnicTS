@@ -10,18 +10,10 @@ async function load_plugins(context) {
     const plugins = [];
 
     for (const folder of folders) {
-        const files = fs.readdirSync(path.join(pluginPath, folder)).filter(f => f.endsWith('.js'));
-        if (files.length === 0) {
-            console.warn(`[plugin_manager] No JS file found in ${folder}`);
-            continue;
-        }
-
-        const pluginFile = path.join(pluginPath, folder, files[0]);
-        const plugin = require(pluginFile);
+        const plugin = require(path.join(pluginPath, folder));
         if (plugin.init) await plugin.init(context);
         plugins.push(plugin);
     }
-
     return plugins;
 }
 
