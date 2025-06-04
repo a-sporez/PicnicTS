@@ -132,7 +132,7 @@ func callMistral(userID string) (string, error) {
 		log.Fatal("Missing MISTRAL_URL or MISTRAL_TOKEN in .env")
 	}
 
-	history := trimMemory(memoryStore[userID], 20)
+	history := trimMemory(memoryStore[userID], 5)
 	payload := MistralRequest{
 		Messages:    history, // use context window memory
 		Temperature: 0.7,
