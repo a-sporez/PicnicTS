@@ -106,11 +106,13 @@ func handleChat(c *gin.Context) {
 		return
 	}
 
-	// store bot reply in memory
-	memoryStore[input.UserID] = append(memoryStore[input.UserID], Message{
-		Role:    "assistant",
-		Content: reply,
-	})
+	// store bot reply in memory after trimming blank strings
+	if trimmed := strings.TrimSpace(reply); trimmed != "" {
+		memoryStore[input.UserID] = append(memoryStore[input.UserID], Message{
+			Role:    "assistant",
+			Content: reply,
+		})
+	}
 
 	c.JSON(http.StatusOK, ChatOutput{Reply: reply})
 }
