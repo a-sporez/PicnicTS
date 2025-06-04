@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -90,11 +91,14 @@ func handleChat(c *gin.Context) {
 	}
 	lastSeen[input.UserID] = now
 
-	// store user message in memory
-	memoryStore[input.UserID] = append(memoryStore[input.UserID], Message{
-		Role:    "user",
-		Content: input.Message,
-	})
+	// store user message in memory and ignore blank strings
+	trimmed := strings.TrimSpace(input.Message)
+	if trimmed != "" {
+		memoryStore[input.UserID] = append(memoryStore[input.UserID], Message{
+			Role:    "user",
+			Content: input.Message,
+		})
+	}
 
 	reply, err := callMistral(input.UserID)
 	if err != nil {
