@@ -19,12 +19,15 @@ module.exports = {
         const {user, message, channelId} = event.payload;
 
         const allowedChannelId = process.env.DISCORD_CHANNEL_ID;
-        if (channelId !== allowedChannelId) {
-            return; // skip messages from other channels
+        if (channelId !== allowedChannelId) return;
+
+        // 👇 Validate input before sending to LLM
+        if (!message || typeof message !== 'string' || message.trim() === '') {
+            console.error('[mistral_bridge] Invalid input message from user:', user, '→', message);
+            return;
         }
 
         try {
-            // forward message to the chatbot's backend
             const res = await fetch(botAPI, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -38,12 +41,12 @@ module.exports = {
                 console.warn('[mistral_bridge] Empty reply from LLM, skipping');
                 return;
             }
+
             console.log('[mistral_bridge] emitting msg to discord:', {
                 type: 'discord::message:send',
                 payload: {content: `🤖 ${reply}`, channelId}
             });
 
-            // em,it a message back to discord if the bot responded
             module.exports.context.emit({
                 type:'discord::message:send',
                 payload: {
@@ -56,6 +59,7 @@ module.exports = {
             module.exports.context.logger.error('[mistral_bridge] error:', err);
         }
     },
+
     shutdown: async () => {
         console.log('[mistral_bridge] shutdown');
     }
