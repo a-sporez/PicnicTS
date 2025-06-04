@@ -47,14 +47,26 @@ module.exports = {
                 payload: {content: `🤖 ${reply}`, channelId}
             });
 
-            module.exports.context.emit({
-                type:'discord::message:send',
-                payload: {
-                    content: `🤖 ${reply}`,
-                    channelId
-                },
-                meta: {plugin: 'mistral_bridge'}
-            });
+            const safeChunks = [];
+            const maxLength  = 1900;
+            let remaining    = reply.trim();
+
+            while (remaining.length > 0) {
+                safeChunks.push(remaining.slice(0, maxLength));
+                remaining = remaining.slice(maxLength);
+            }
+
+            for (const chunk of safeChunks) {
+                module.exports.context.emit({
+                    type:'discord::message:send',
+                    payload: {
+                        content: `🤖 ${chunk}`,
+                        channelId
+                    },
+                    meta: {plugin: 'mistral_bridge'}
+                });
+            }
+
         } catch (err) {
             module.exports.context.logger.error('[mistral_bridge] error:', err);
         }
