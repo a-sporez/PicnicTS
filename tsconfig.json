@@ -21,8 +21,9 @@
     /* Strictness */
     "strict": false,
     "noImplicitAny": false,
-    "noUncheckedIndexedAccess": false,
-    "noImplicitOverride": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
 
     /* If transpiling with TypeScript: */
     /*"module": "NodeNext",
