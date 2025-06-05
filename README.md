@@ -1,91 +1,154 @@
-# PicnicJS
+# PicnicTS – TypeScript Streamer Plugin System
 
-Node.js plugin-hosting backend with Go chatbot microservice.
+Node.js + TypeScript plugin-hosting backend with Go chatbot microservice (SporeDrop).
 
-Currently the system serves as a modular event-based architecture bridging Discord, custom LLM APIs (e.g., Mistral), and internal plugin logic. It is tested with DigitalOcean's Mistral Nemo Instruct model but adaptable to others. Main interfaces are Express and internal event buses.
-
-**DOTENV Variables need to be created to authorize**
-
-## Component Design Blueprint
-
-                       +-------------------------+
-                       |      Frontend App       |
-                       |         (Vite)          |
-                       +-----------+-------------+
-                                   |
-                        HTTPS/API Calls / WebSocket
-                                   ↓
-           +----------------------↓----------------------+
-           |                  API Gateway                |
-           |          express-rate-limit + proxy         |
-           +----------------------↓----------------------+
-                        Auth Headers (JWT from Keycloak)
-                                   ↓
-                       +----------↓-----------+
-                       |   Module Host (API)  |
-                       |   main.ts            |
-                       +--+-----+------+------+
-                          |     |      |
-                          ↓     ↓      ↓
-               +----------+ +----------+ +-------------+
-               | StreamCfg | | ClientCfg| | ChatModule |
-               | Service   | | Service  | | EmoteMod   |
-               +-----+-----+ +-----+----+ +------+------+
-                     |             |             |
-                     ↓             ↓             ↓
-               Redis Cloud     PostgreSQL     In-memory/Redis
-
-                   ⬑ Shared Redis Pub/Sub Queue (event bus)
-
-                          +-------------------+
-                          |  Keycloak Server  |
-                          | (OAuth2 + RBAC)   |
-                          +-------------------+
+This system uses a modular, type-safe, event-based architecture to bridge Discord, LLM APIs, and internal plugin logic. Plugin communication occurs through a central event bus and strongly typed interfaces. External HTTP injection is supported via Express.
 
 ---
 
-## Component Map
+## Directory Map
 
 ```
 root
-├── main.js                  # Starts plugin system & emits test events
-├── server.js                # Express API for injecting events
+├── main.ts                  # Entry point for plugin system, emits test events
+├── server.ts                # Express API for injecting events into system
 ├── /core
-│   ├── context.js           # Defines the shared event context
-│   ├── event_bus.js         # Handles publish/subscribe logic
-│   └── plugin_manager.js    # Dynamically loads plugin modules
+│   ├── context.ts           # Shared execution context (logger, emit, hostId)
+│   ├── EventBus.ts          # Type-safe publish/subscribe event system
+│   ├── PluginManager.ts     # Loads plugins dynamically using import()
+│   └── plugins.ts           # Shared Plugin interface definition
 ├── /plugins
-│   ├── chat_module          # In-memory chat log, rebroadcasts messages
-│   ├── client_config        # Stores config per clientId, triggers updates
-│   ├── discord_bridge       # Receives/sends Discord messages as events
-│   ├── emote_module         # Rewrites messages with emojis from :codes:
-│   ├── greeter              # Simple hello-world plugin for testing
-│   ├── mistral_bridge       # Routes Discord chat to chatbot API and back
-│   └── stream_config        # Manages stream metadata (title, tags, live flag)
+│   ├── chat_module          # Logs chat messages, rebroadcasts events
+│   ├── client_config        # Tracks client-specific config in memory
+│   ├── discord_bridge       # Bridges Discord messages/events
+│   ├── emote_module         # Translates :emoji: codes to Unicode emojis
+│   ├── greeter              # Simple test plugin to handle 'hello'
+│   ├── mistral_bridge       # Routes Discord chat to Mistral and replies
+│   └── stream_config        # Handles title/tags/live flags for stream metadata
 └── /SporeDrop
-    └── main.go              # Mistral chatbot backend (Go) with context memory
+    └── main.go              # Go-based Mistral chatbot backend
 ```
 
 ---
 
-## Technologies and Tools
+## Plugin Interface (TypeScript)
 
-| Layer             | Stack / Tools                                                                                       |
-| ----------------- | --------------------------------------------------------------------------------------------------- |
-| **Frontend**      | (Optional) External apps that hit `/events/incoming`                                                |
-| **Auth**          | Discord bot token (.env), no centralized auth yet                                                   |
-| **Backend**       | Node.js, Express, plugin system                                                                     |
-| **Plugins**       | `chat_module`, `emote_module`, `mistral_bridge`, `discord_bridge`, `stream_config`, `client_config` |
-| **Database**      | In-memory with optional Redis/DB later                                                              |
-| **Communication** | Event bus (internal pub/sub), HTTP injection via Express                                            |
-| **Rate Limits**   | Mistral backend includes simple user cooldown logic                                                 |
-| **Storage**       | None yet – chat/config/plugins are all ephemeral                                                    |
+All plugins must conform to this interface:
 
+```ts
+export interface Plugin {
+  name: string;
+  init(context: Context): Promise<void>;
+  handle_event(event: Event): Promise<void> | void;
+  shutdown(): Promise<void>;
+}
+```
 
-**DOCUMENTATION IS INCOMPLETE**
+Plugins are loaded dynamically and passed the shared `context` on startup.
+They handle events via `handle_event` and may clean up using `shutdown()`.
 
 ---
 
-[SporeDrop](/documentation/SporeDrop.md)
+## Core Modules
 
-[Module Host](/documentation/module_host.md)
+### `core/context.ts`
+
+| Name              | Type       | Description                                    |
+| ----------------- | ---------- | ---------------------------------------------- |
+| `createContext()` | `Function` | Returns a shared context object for plugins    |
+| `context.emit()`  | `Function` | Emits events via the EventBus                  |
+| `context.logger`  | `Logger`   | Provided logger (e.g., console or Pino)        |
+| `context.hostId`  | `string`   | ID string identifying the module host instance |
+
+---
+
+### `core/EventBus.ts`
+
+| Name             | Type                      | Description                      |
+| ---------------- | ------------------------- | -------------------------------- |
+| `subscribe(fn)`  | `(event) => void`         | Register an event listener       |
+| `publish(event)` | `(event: Event) => void`  | Emit an event to all subscribers |
+| `Event`          | `type`, `payload`, `meta` | Standardized system event object |
+
+---
+
+### `core/PluginManager.ts`
+
+| Name            | Type       | Description                                       |
+| --------------- | ---------- | ------------------------------------------------- |
+| `loadPlugins()` | `Function` | Loads all plugins from `/plugins`, calls `init()` |
+|                 |            | Uses `import()` dynamically with `default` export |
+
+---
+
+## Express API (`server.ts`)
+
+| Route              | Method | Description                                                 |
+| ------------------ | ------ | ----------------------------------------------------------- |
+| `/events/incoming` | POST   | Accepts `{ type, payload }` and routes to internal EventBus |
+
+---
+
+## Plugin Summary Table
+
+| Plugin           | Handles Events                                | Emits Events                        | Notes                        |
+| ---------------- | --------------------------------------------- | ----------------------------------- | ---------------------------- |
+| `chat_module`    | `chat::message`                               | `chat::message:received`            | Stores and rebroadcasts chat |
+| `emote_module`   | `chat::message:received`                      | `chat::message:emoted`              | Transforms emojis            |
+| `stream_config`  | `stream::config:update`, `stream::config:get` | –                                   | Logs stream metadata         |
+| `client_config`  | `client::config:update`, `client::config:get` | `client::config:changed`            | Tracks clientId configs      |
+| `discord_bridge` | `discord::message:send`                       | `discord::message:received`         | Discord.js message bridge    |
+| `mistral_bridge` | `discord::message:received`                   | `discord::message:send` (LLM reply) | Forwards to Go API           |
+| `greeter`        | `hello`                                       | –                                   | Simple debugging plugin      |
+
+---
+
+## See Also
+
+* [SporeDrop](documentation/SporeDrop.md) – Go chatbot backend
+* [roadmap_v1](documentation/roadmap_v1.md) – Project plan and upgrade path
+
+## Component Design Blueprint
+
+                        +---------------------------+
+                        |      Frontend App (UI)    |
+                        |     (Astro / WebSocket)   |
+                        +------------+--------------+
+                                     |
+                         Token Auth + WebSocket
+                                     ↓
+                +------------------ API Gateway ------------------+
+                |     Express (server.ts) + middleware            |
+                |     - Rate limits                                 |
+                |     - JWT auth (Keycloak planned)                |
+                +------------------+-------------------------------+
+                                   ↓
+                      +------------↓------------+
+                      |     Plugin Host (TS)    |
+                      |        main.ts          |
+                      +----+----------+---------+
+                           |          |
+                +----------+   +------+-------+--------+
+                | EventBus.ts | PluginManager.ts       |
+                +-------------+------------------------+
+                           |           |           |
+                           ↓           ↓           ↓
+                     +-----+-----+ +---+----+ +-----+------+
+                     | streamCfg | | client | | chatModule |
+                     |  plugin   | | plugin | | plugin     |
+                     +-----+-----+ +--------+ +------------+
+                           |           |           |
+                           ↓           ↓           ↓
+                 Redis (future)   Redis (future)   In-memory
+
+          ⬑ All plugins communicate via shared event bus
+
+                           +--------------------+
+                           |   Keycloak Server  |
+                           | (OAuth2, RBAC)     |
+                           +--------------------+
+
+                           +--------------------+
+                           |     SporeDrop      |
+                           |  Go chatbot API    |
+                           +--------------------+

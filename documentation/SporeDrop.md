@@ -1,21 +1,18 @@
-# SporeDrop Chatbot Module – Reference Guide
+# SporeDrop – TypeScript-Compatible Reference Guide
 
 ---
 
-## 🔹 Purpose
+## Purpose
 
-This Go module acts as a **middleware service** between a chat client (e.g., Discord) and the **Mistral LLM API**, enabling contextual, rate-limited interactions via HTTP requests. It supports:
+This Go module acts as a **middleware service** between a chat client (e.g., Discord) and the **Mistral LLM API**, enabling contextual, rate-limited interactions via HTTP requests.
 
-* In-memory user-specific message context
-* JSON-based chat inputs and outputs
-* Call delegation to a hosted Mistral endpoint
-* Rate-limiting per user to prevent abuse
+Its output is formatted to match the expectations of the TypeScript plugin system and emits events compatible with `mistral_bridge`.
 
 ---
 
-### 📁 Core Components
+## Core Components
 
-#### 1. **Dependencies**
+### 1. Dependencies
 
 ```go
 "github.com/gin-gonic/gin"
@@ -27,153 +24,147 @@ This Go module acts as a **middleware service** between a chat client (e.g., Dis
 
 ---
 
-### 📦 Data Structures
+## Data Structures
 
-#### ➤ `ChatInput`
+### ➤ `ChatInput`
 
 ```go
 type ChatInput struct {
-	UserID  string `json:"user"`
-	Message string `json:"message"`
+  UserID  string `json:"user"`
+  Message string `json:"message"`
 }
 ```
 
-* Represents the incoming request payload from a client (e.g., a Discord message)
-* `UserID` is required to track memory per-user
+* Represents incoming request payload
+* `UserID` is required for context memory and rate limiting
 
-#### ➤ `ChatOutput`
+### ➤ `ChatOutput`
 
 ```go
 type ChatOutput struct {
-	Reply string `json:"reply"`
+  Reply string `json:"reply"`
 }
 ```
 
-* Encapsulates the chatbot’s textual response
+* Response structure returned to the caller
 
-#### ➤ `Message`
+### ➤ `Message`
 
 ```go
 type Message struct {
-	Role    string `json:"role"`     // "user", "assistant", "system"
-	Content string `json:"content"`  // actual message text
+  Role    string `json:"role"`
+  Content string `json:"content"`
 }
 ```
 
-* Used for memory and LLM API payloads
-* Stored and sent in role-based history for context
+* Used internally for context memory and sent to Mistral API
 
-#### ➤ `MistralRequest` & `MistralResponse`
+### ➤ `MistralRequest` & `MistralResponse`
 
 ```go
 type MistralRequest struct {
-	Messages    []Message
-	Temperature float32
-	Stream      bool
+  Messages    []Message
+  Temperature float32
+  Stream      bool
 }
 ```
-
-* Mistral-compatible prompt object using user context
 
 ```go
 type MistralResponse struct {
-	Choices []struct {
-		Message struct {
-			Content string
-		}
-	}
+  Choices []struct {
+    Message struct {
+      Content string
+    }
+  }
 }
 ```
 
-* Minimal structure to parse a response from Mistral
+* Used to format Mistral API requests and decode responses
 
 ---
 
-### 🗂 Global State
+## Global State
 
-#### ➤ `memoryStore`
+### ➤ `memoryStore`
 
 ```go
 var memoryStore = make(map[string][]Message)
 ```
 
-* Stores per-user chat memory in memory, used as conversation context
+* Per-user memory used for context window
 
-#### ➤ `lastSeen`
+### ➤ `lastSeen`
 
 ```go
 var lastSeen = make(map[string]time.Time)
 ```
 
-* Stores timestamp of each user's last message to throttle frequency
+* Tracks last request timestamp per user (cooldown enforcement)
 
 ---
 
-### ⚙️ Initialization Logic
+## Initialization
 
-#### ➤ `init()`
+### ➤ `init()`
 
 ```go
 func init() {
-	godotenv.Load()
+  godotenv.Load()
 }
 ```
 
-* Loads `.env` values (e.g., `MISTRAL_URL`, `MISTRAL_TOKEN`, `PORT`)
+* Loads configuration from `.env`
 
-#### ➤ `main()`
+### ➤ `main()`
 
 ```go
 router.POST("/chat", handleChat)
 ```
 
-* Starts a web server on `PORT` (default: 8080)
-* Defines one endpoint: `POST /chat`
+* Launches server on `PORT` (default: 8080)
+* Accepts structured chat inputs
 
 ---
 
-### 🚦 Endpoint Handler
+## Endpoint Logic
 
-#### ➤ `handleChat(c *gin.Context)`
+### ➤ `handleChat(c *gin.Context)`
 
-Processes all chat events. Key steps:
-
-1. ✅ Validate request body & `UserID`
-2. 🚫 Apply 3-second per-user rate limit via `lastSeen`
-3. 🧠 Append user's message to their memory
-4. 🤖 Send memory to Mistral API and retrieve reply
-5. 📥 Store assistant reply in memory
-6. 🔁 Return reply as JSON
+1. Validates payload (requires non-empty `UserID` and `Message`)
+2. Applies rate limit (3s cooldown)
+3. Appends user message to context memory
+4. Calls `callMistral()` with trimmed memory
+5. Stores assistant reply
+6. Returns `{ "reply": "..." }`
 
 ---
 
-### 🧹 Utility: Trim Memory
+## Utility: Trim Memory
 
-#### ➤ `trimMemory()`
+### ➤ `trimMemory()`
 
 ```go
 func trimMemory(messages []Message, limit int) []Message
 ```
 
-* Keeps only the last `limit` messages per user
-* Used to prevent memory overgrowth
+* Retains only most recent messages (default: 5–20)
 
 ---
 
-### 🤖 LLM Call
+## LLM Call
 
-#### ➤ `callMistral(userID string)`
+### ➤ `callMistral(userID string)`
 
-1. Trims user memory to 20 messages
-2. Constructs a `MistralRequest`
-3. Makes an authenticated `POST` request to Mistral API
-4. Parses `Choices[0].Message.Content` as final reply
+1. Trims memory
+2. Constructs `MistralRequest`
+3. Sends request using bearer token
+4. Returns `reply` string from first `Choices[0].Message.Content`
 
 ---
 
-### 📄 .env Required Variables
+## Environment Variables
 
-Make sure the following exist in your `.env`:
+These must be defined in `.env`:
 
 ```
 PORT=8080
@@ -183,9 +174,9 @@ MISTRAL_TOKEN=your_mistral_api_key
 
 ---
 
-### 🧱 Example Request
+## Example Request
 
-#### Request
+### Request
 
 ```json
 POST /chat
@@ -197,7 +188,7 @@ Content-Type: application/json
 }
 ```
 
-#### Response
+### Response
 
 ```json
 {
@@ -207,12 +198,10 @@ Content-Type: application/json
 
 ---
 
-### 🔐 Protections Implemented
+## Protections Implemented
 
-| Feature        | Behavior                            |
-| -------------- | ----------------------------------- |
-| Rate Limiter   | 3 seconds per user (via `lastSeen`) |
-| Memory Control | Trimmed to last 20 messages         |
-| Input Check    | Rejects if `UserID` is missing      |
-
----
+| Feature        | Behavior                               |
+| -------------- | -------------------------------------- |
+| Rate Limiter   | 3 seconds per user (`lastSeen`)        |
+| Memory Control | Memory trimmed per user (`trimMemory`) |
+| Input Check    | Rejects if `UserID` is missing         |
