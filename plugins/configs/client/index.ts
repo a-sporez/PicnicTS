@@ -31,7 +31,7 @@ module.exports = {
 
       // notify other modules (including frontend)
       // WARN: does contextReference exist?
-      contextReference.emit({
+      (contextReference as any).emit({
         type: "client::config:changed",
         payload: { clientId: payload.clientId, config: updated },
         meta: { plugin: "client_config" },

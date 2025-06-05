@@ -22,8 +22,8 @@ module.exports = {
   // celled on init, stores context for later
   init: async (context: unknown) => {
     module.exports.context = context;
-    context
-      ? context.logger.log("[mistral_bridge] Initialized.")
+    (context as any)
+      ? (context as any).logger?.log("[mistral_bridge] Initialized.")
       : console.log("failure to init mistral bridge");
   },
 
@@ -33,7 +33,7 @@ module.exports = {
 
     const botAPI =
       process.env.BOT_API_URL || "http://localhost:8080/chat";
-    const { user, message, channelId } = event.payload;
+    const { user, message, channelId } = (event as any).payload;
 
     const allowedChannelId = process.env.DISCORD_CHANNEL_ID;
     if (channelId !== allowedChannelId) return;
@@ -60,7 +60,7 @@ module.exports = {
         body: JSON.stringify({ user, message }),
       });
 
-      const { reply } = await res.json();
+      const { reply } = (await res.json()) as any;
 
       console.log("[mistral_bridge] LLM raw reply:", reply);
       if (!reply || reply.trim() === "") {
@@ -95,7 +95,7 @@ module.exports = {
         });
       }
     } catch (err) {
-      module.exports.context.logger.error(
+      (module.exports.context as any)?.logger?.error(
         "[mistral_bridge] error:",
         err
       );

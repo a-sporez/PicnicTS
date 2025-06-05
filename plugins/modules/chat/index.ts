@@ -15,7 +15,7 @@ module.exports = {
   handle_event: async (event: IncomingEvent) => {
     if (!event || event.type !== "chat::message") return;
 
-    const { user, message, clientId } = event.payload;
+    const { user, message, clientId } = (event as any).payload;
 
     const chatEntry = {
       user,
