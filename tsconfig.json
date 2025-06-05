@@ -21,7 +21,6 @@
     /* Strictness */
     "strict": false,
     "noImplicitAny": false,
-    "suppressImplicitAnyIndexErrors": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,
 
