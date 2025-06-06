@@ -1,17 +1,22 @@
 // plugins/bridge/discord/index.js
 // TODO: review 10
-const {Client, GatewayIntentBits} = require('discord.js');
+import {Client, GatewayIntentBits} from 'discord.js';
+import type {PluginContext} from '@core/types/context';
+import type {Bridge} from '@core/types/plugins'
 
 let bot = null;
 let contextRef = null;
 
-module.exports = {
-    name: 'discord_bridge',
+class DiscordBridge implements Bridge {
+    bridgeName = 'discord_bridge';
+    private bot: Client | null = null;
+    private contextRef: PluginContext | null = null;
+
+    constructor() {}
 
     // called by plugin manager on startup
-    init: async (context) => {
-        contextRef = context;
-
+    async init (context: PluginContext) {
+        this.contextRef = context;
         // load environment variables
         const token = process.env.DISCORD_TOKEN;
         const channelId = process.env.DISCORD_CHANNEL_ID;
@@ -21,23 +26,24 @@ module.exports = {
         }
 
         // Initialize the discord client
-        bot = new Client({
+        this.bot = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.MessageContent
-            ]
+            ],
         });
 
         // log when the bot is ready
-        bot.on('ready', () => {
-            context.logger.log(`[discord_bridge] Connected as ${bot.user.tag}`);
+        this.bot.on('ready', () => {
+            context.logger.log(
+                `[discord_bridge] Connected as ${this.bot?.user?.tag}`
+            );
         });
 
         // listen to messages in channel
-        bot.on('messageCreate', (msg) => {
+        this.bot.on('messageCreate', (msg) => {
             if (msg.author.bot) return; // ignore bot messages
-
             // Emit a structured event into your system.
             context.emit({
                 type: 'discord::message:received',
@@ -52,38 +58,39 @@ module.exports = {
         });
 
         context.logger.log('[discord_bridge] Logging in...');
-        await bot.login(token);
+        await this.bot.login(token);
     },
 
     // listens for internal events like 'discord::message:send'
-    handle_event: async (event) => {
+    handlEvent (event: any) {
         if (event.type !== 'discord::message:send') return;
 
         const {content, channelId} = event.payload;
-
         // use the provided channel or fallback to default from .env
         const id = channelId || process.env.DISCORD_CHANNEL_ID;
-        const channel = await bot.channels.fetch(id).catch(err => {
+
+        if (!this.bot) return;
+        const channel = await this.bot.channels.fetch(id).catch(err => {
             console.warn('[discord_bridge] channel fetch failed', err);
             return null;
         });
 
-        if (!channel) {
+        if (!channel || typeof (channel as any).send !== 'function') {
             console.warn('[discord_bridge] cannot find channel for ID:', id);
             return;
         }
 
-        if (channel && channel.send) {
-            if (!content || typeof content !== 'string' || content.trim() === "") {
-                contextRef.logger.warn('[discord_bridge] Invalid content payload:', content);
-                return;
-            }
-            await channel.send({content});
+        if (!content || typeof content !== 'string' || content.trim() === "") {
+            contextRef.logger.warn('[discord_bridge] Invalid content payload:', content);
+            return;
         }
-    },
-
-    shutdown: async () => {
-        if (bot) await bot.destroy();
-        contextRef.logger.log('[discord_bridge] shutdown')
+        await channel.send({content});
     }
-};
+
+    async shutdown () {
+        if (this.bot) await this.bot.destroy();
+        this.contextRef?.logger.log('[discord_bridge] shutdown');
+    }
+}
+
+export default DiscordBridge;
