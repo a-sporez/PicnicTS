@@ -16,15 +16,15 @@ This system uses a modular, type-safe, event-based architecture to bridge Discor
 │  biome.json
 │  server.config.json
 │  server.ts            ← HTTP entry-point (not shown)
-│  main.ts              ← in-process dev runner            :contentReference[oaicite:0]{index=0}
+│  main.ts              ← in-process dev runner
 │
 ├─core
-│  │  context.ts        ← creates the “emit/ logger” ctx    :contentReference[oaicite:1]{index=1}
-│  │  EventBus.ts       ← simple pub/sub bus                :contentReference[oaicite:2]{index=2}
-│  │  PluginManager.ts  ← dynamic loader                    :contentReference[oaicite:3]{index=3}
+│  │  context.ts        ← creates the “emit/ logger” ctx
+│  │  EventBus.ts       ← simple pub/sub bus
+│  │  PluginManager.ts  ← dynamic loader
 │  └─types
-│       plugins.ts      ← InternalPlugin, Bridge types      :contentReference[oaicite:4]{index=4}
-│       routes.ts       ← IncomingEvent shape               :contentReference[oaicite:5]{index=5}
+│       plugins.ts      ← InternalPlugin, Bridge types
+│       routes.ts       ← IncomingEvent shape
 │
 ├─plugins
 │  ├─modules
