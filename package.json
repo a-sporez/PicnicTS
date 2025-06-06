@@ -1,5 +1,5 @@
 {
-  "name": "picnicjs",
+  "name": "hyphaenet",
   "version": "0.0.1",
   "description": "LLM-discord API interface.",
   "packageManager": "yarn@4.9.2",

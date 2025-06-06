@@ -1,0 +1,21 @@
+{
+  "apps": [
+    {
+      "name": "hyphaenet",
+      "cwd": "/srv/hyphaenet",
+      "script": "npx",
+      "args": "tsx --env-file=.env.prod server.ts",
+      "interpreter": "none",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    {
+      "name": "sporedrop",
+      "cwd": "/srv/hyphaenet/SporeDrop",
+      "script": "go",
+      "args": "run main.go",
+      "interpreter": "none"
+    }
+  ]
+}
