@@ -4,11 +4,14 @@ A realistic, incremental plan that turns the current **TypeScript + Yarn v4** co
 
 ---
 
-## 0 — House-keeping & Guard-rails
+## 0 — House-keeping & Refactoring
 
-| Task                          | Why now?                                    | How                                                                   |
-| ----------------------------- | ------------------------------------------- | --------------------------------------------------------------------- |
-| **Structured logger wrapper** | Consistent JSON logs for later aggregation. | Thin wrapper around `pino` or `winston`; inject via `context.logger`. |
+**Refactor 0-15 Goals**
+
+- Finish CJS→ESM conversion for all plugins
+- Switch from require to dynamic import(), with error and logger.
+- Centralize sporedrop server to global interface for other LLM services.
+- Structured Logger Wrapper.
 
 ---
 
