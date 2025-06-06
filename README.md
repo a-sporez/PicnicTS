@@ -9,24 +9,50 @@ This system uses a modular, type-safe, event-based architecture to bridge Discor
 ## Directory Map
 
 ```
-root
-├── main.ts                  # Entry point for plugin system, emits test events
-├── server.ts                # Express API for injecting events into system
-├── /core
-│   ├── context.ts           # Shared execution context (logger, emit, hostId)
-│   ├── EventBus.ts          # Type-safe publish/subscribe event system
-│   ├── PluginManager.ts     # Loads plugins dynamically using import()
-│   └── plugins.ts           # Shared Plugin interface definition
-├── /plugins
-│   ├── chat_module          # Logs chat messages, rebroadcasts events
-│   ├── client_config        # Tracks client-specific config in memory
-│   ├── discord_bridge       # Bridges Discord messages/events
-│   ├── emote_module         # Translates :emoji: codes to Unicode emojis
-│   ├── greeter              # Simple test plugin to handle 'hello'
-│   ├── mistral_bridge       # Routes Discord chat to Mistral and replies
-│   └── stream_config        # Handles title/tags/live flags for stream metadata
-└── /SporeDrop
-    └── main.go              # Go-based Mistral chatbot backend
+/                (project root)
+│  package.json
+│  package-lock.json
+│  tsconfig.json
+│  biome.json
+│  server.config.json
+│  server.ts            ← HTTP entry-point (not shown)
+│  main.ts              ← in-process dev runner            :contentReference[oaicite:0]{index=0}
+│
+├─core
+│  │  context.ts        ← creates the “emit/ logger” ctx    :contentReference[oaicite:1]{index=1}
+│  │  EventBus.ts       ← simple pub/sub bus                :contentReference[oaicite:2]{index=2}
+│  │  PluginManager.ts  ← dynamic loader                    :contentReference[oaicite:3]{index=3}
+│  └─types
+│       plugins.ts      ← InternalPlugin, Bridge types      :contentReference[oaicite:4]{index=4}
+│       routes.ts       ← IncomingEvent shape               :contentReference[oaicite:5]{index=5}
+│
+├─plugins
+│  ├─modules
+│  │   │ index.ts       ← re-exports chat & emote
+│  │   ├─chat
+│  │   │   index.ts     ← logs & rebroadcasts chat
+│  │   └─emote
+│  │       index.ts     ← emoji substitution pass-through
+│  ├─configs
+│  │   │ index.ts       ← re-exports client & stream
+│  │   ├─client
+│  │   │   index.ts     ← per-client config store
+│  │   └─stream
+│  │       index.ts     ← stream metadata store
+│  ├─bridges
+│  │   │ index.ts       ← re-exports discord & mistral
+│  │   ├─discord
+│  │   │   index.js     ← Discord bot ↔ EventBus
+│  │   └─mistral
+│  │       index.ts     ← LLM call / chunking logic
+│  └─apps
+│      │ index.ts       ← re-exports greeter
+│      └─greeter
+│          index.ts     ← “hello” demo plugin
+│
+└─SporeDrop            (Go micro-service)
+    main.go            ← Mistral proxy + memory store
+    go.mod / go.sum
 ```
 
 ---
