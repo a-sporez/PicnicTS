@@ -2,7 +2,7 @@
 // WIP: refactor 0
 import fetch from "node-fetch";
 
-import type { PluginContext } from "@core/context"
+import type { PluginContext } from "@localtypes/plugins"
 import type { Bridge } from "@localtypes/plugins";
 import type { IncomingEvent } from "@localtypes/routes";
 

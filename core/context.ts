@@ -1,8 +1,15 @@
 // /core/context.ts
-// TODO: refactor 5
+// WIP: refactor 0
+// TODO: review 5
 import { publishEvent } from "./EventBus";
 
-function createContext() {
+export interface PluginContext {
+  hostId: string;
+  logger: Console;
+  emit: (content: unknown) => void;
+}
+
+function createContext(): PluginContext {
   return {
     hostId: "main-node-1",
     logger: console,
