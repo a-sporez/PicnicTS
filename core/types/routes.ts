@@ -12,6 +12,13 @@ interface EventPayload {
   channelId: string;
 }
 
+interface ChatLogEntry {
+  user: string;
+  message: string;
+  timestamp: number;
+  clientId: string;
+}
+
 interface IncomingEvent extends RequestBody {
   // ++
   // files: RawFile[] | undefined;
@@ -22,4 +29,4 @@ interface IncomingEvent extends RequestBody {
   meta?: string;
 }
 
-export type { IncomingEvent, BotAPIResponse };
+export type { IncomingEvent, BotAPIResponse, ChatLogEntry };

@@ -16,4 +16,16 @@ interface Bridge extends InternalPlugin {
   readonly bridgeName: string;
 }
 
-export type { InternalPlugin, Bridge };
+interface Module extends InternalPlugin {
+  readonly moduleName: string;
+}
+
+interface App extends InternalPlugin {
+  readonly appName: string;
+}
+
+interface Config extends InternalPlugin {
+  readonly configName: string;
+}
+
+export type { InternalPlugin, Bridge, Module, App, Config };

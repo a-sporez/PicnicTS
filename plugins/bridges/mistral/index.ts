@@ -1,8 +1,8 @@
 // plugins/bridges/mistral/index.js
-// WIP: refactor 0
+// WIP+: ESM convert
 import fetch from "node-fetch";
 
-import type { PluginContext } from "@localtypes/plugins";
+import type { PluginContext } from "@localtypes/context";
 import type { Bridge } from "@localtypes/plugins";
 import type {
   BotAPIResponse,

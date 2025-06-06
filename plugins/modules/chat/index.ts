@@ -1,45 +1,57 @@
 // plugins/modules/chat/index.js
-// TODO: refactor 11
-import type { IncomingEvent } from "@/core/types/routes";
+// WIP+: ESM convert
 import { clientConfig } from "@plugins/configs";
+import type {IncomingEvent, ChatLogEntry} from "@/core/types/routes";
+import type {PluginContext} from "@/core/types/context";
+import type {Module} from '@localtypes/plugins';
 
-module.exports = {
-  name: "chat_module",
-  chatLog: [],
+class ChatModule implements Module {
+  pluginType = 'module';
+  moduleName = 'chat';
+  private contextRef: PluginContext | null = null;
+  private chatLog: ChatLogEntry[] = [];
 
-  init: async (context: unknown) => {
-    module.exports.context = context;
+  constructor() {}
+  // called by plugin manager on startup
+  async init (context: PluginContext) {
+    this.contextRef = context;
     //@ts-expect-error
-    context.logger.log("[chat_module] Initialized.");
-  },
+    context.logger.log("[ChatModule] Initialized.");
+  }
 
-  handle_event: async (event: IncomingEvent) => {
+  async handleEvent (event: IncomingEvent) {
     if (!event || event.type !== "chat::message") return;
 
     const { user, message, clientId } = (event as any).payload;
 
-    const chatEntry = {
+    const chatEntry: ChatLogEntry = {
       user,
       message,
       timestamp: Date.now(),
       clientId,
     };
 
-    module.exports.chatLog.push(chatEntry);
+    this.chatLog.push(chatEntry);
 
-    console.log(
-      `[chat_module] New message from ${user}: ${message}`
+    this.contextRef?.logger.log(
+      `[ChatModule] New message from ${user}: ${message}`
     );
 
     // broadcast chat message event
-    module.exports.context.emit({
+    this.contextRef?.emit({
       type: "chat::message:received",
       payload: chatEntry,
-      meta: { plugin: "chat_module" },
+      meta: { plugin: "module.chat" },
     });
-  },
+  }
 
-  shutdown: async () => {
-    console.log("[chat_module] shutting down.");
-  },
-};
+  async shutdown () {
+    this.contextRef?.logger.log("[ChatModule] shutting down.");
+  }
+
+  getChatLog(): ChatLogEntry[] {
+    return [...this.chatLog];
+  }
+}
+
+export default ChatModule;

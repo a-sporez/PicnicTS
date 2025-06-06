@@ -1,14 +1,15 @@
 // plugins/bridge/discord/index.js
-// TODO: review 10
+// WIP+: ESM convert
 import {Client, GatewayIntentBits} from 'discord.js';
-import type {PluginContext} from '@core/types/context';
-import type {Bridge} from '@core/types/plugins'
+import type {PluginContext} from '@localtypes/context';
+import type {Bridge} from '@localtypes/plugins'
 
 let bot = null;
 let contextRef = null;
 
 class DiscordBridge implements Bridge {
-    bridgeName = 'discord_bridge';
+    pluginName = 'bridge';
+    bridgeName = 'discord';
     private bot: Client | null = null;
     private contextRef: PluginContext | null = null;
 
