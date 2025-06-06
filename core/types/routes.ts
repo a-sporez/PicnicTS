@@ -2,7 +2,10 @@
 // TODO: refactor 8
 import type { RequestBody } from "discord.js";
 
-interface APIReply {}
+interface BotAPIResponse {
+  reply: string;
+}
+
 interface EventPayload {
   user: string;
   message: string;
@@ -19,4 +22,4 @@ interface IncomingEvent extends RequestBody {
   meta?: string;
 }
 
-export type { IncomingEvent };
+export type { IncomingEvent, BotAPIResponse };

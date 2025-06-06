@@ -4,7 +4,10 @@ import fetch from "node-fetch";
 
 import type { PluginContext } from "@localtypes/plugins";
 import type { Bridge } from "@localtypes/plugins";
-import type { IncomingEvent } from "@localtypes/routes";
+import type {
+  BotAPIResponse,
+  IncomingEvent,
+} from "@localtypes/routes";
 
 // WIP: turn this and the rest of internal plugins
 // into classes extending their respective interfaces
@@ -34,7 +37,7 @@ class MistralBridge implements Bridge {
 
       const botAPI =
         process.env.BOT_API_URL || "http://localhost:8080/chat";
-      const { user, message, channelId } = (event as any).payload;
+      const { user, message, channelId } = event.payload;
 
       const allowedChannelId = process.env.DISCORD_CHANNEL_ID;
       if (channelId !== allowedChannelId) return;
@@ -61,7 +64,7 @@ class MistralBridge implements Bridge {
           body: JSON.stringify({ user, message }),
         });
 
-        const { reply } = (await res.json()) as any;
+        const { reply } = (await res.json()) as BotAPIResponse;
 
         this.ctx.logger.info(
           "[mistral_bridge] LLM raw reply:",

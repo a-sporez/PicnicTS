@@ -6,4 +6,10 @@ interface LoggerContext {
   location?: string;
 }
 
-export type { LoggerContext };
+interface PluginContext {
+  hostId: string;
+  logger: Console;
+  emit: (content: unknown) => void;
+}
+
+export type { LoggerContext, PluginContext };

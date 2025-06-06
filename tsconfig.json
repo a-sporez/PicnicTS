@@ -19,10 +19,10 @@
     "verbatimModuleSyntax": true,
 
     /* Strictness */
-    "strict": false,
-    "noImplicitAny": false,
+    "strict": true,
+    "noImplicitAny": true,
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": false,
+    "exactOptionalPropertyTypes": true,
 
     /* If transpiling with TypeScript: */
     /*"module": "NodeNext",

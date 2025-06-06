@@ -14,5 +14,4 @@ interface Bridge extends InternalPlugin {
   readonly bridgeName: string;
 }
 
-export type { PluginContext } from "../context";
 export type { InternalPlugin, Bridge };

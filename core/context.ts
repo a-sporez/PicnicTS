@@ -2,7 +2,10 @@
 // WIP: refactor 0
 // TODO: review 5
 import { publishEvent } from "./EventBus";
-import type { LoggerContext } from "./types/context";
+import type {
+  LoggerContext,
+  PluginContext,
+} from "./types/context";
 
 class ContextProvider {
   hostId: string;
@@ -48,12 +51,6 @@ class ContextProvider {
 
   // TODO: set context
   setter(): void {}
-}
-
-export interface PluginContext {
-  hostId: string;
-  logger: Console;
-  emit: (content: unknown) => void;
 }
 
 function createContext(): PluginContext {
