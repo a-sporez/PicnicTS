@@ -98,4 +98,4 @@ class MistralBridge implements Bridge {
   }
 }
 
-export default new MistralBridge();
+export {MistralBridge};
