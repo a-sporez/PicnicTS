@@ -1,3 +1,5 @@
+// /core/PluginManager.ts
+// TODO: refactor 3
 import fs from "fs";
 import path from "path";
 

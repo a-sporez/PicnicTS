@@ -1,4 +1,5 @@
-// plugins/discord_bridge/index.js
+// plugins/bridge/discord/index.js
+// TODO: review 10
 const {Client, GatewayIntentBits} = require('discord.js');
 
 let bot = null;

@@ -1,4 +1,5 @@
-// plugins/stream_config/index.js
+// plugins/config/stream/index.ts
+// TODO: refactor 13
 let streamConfig = {
     title: "Untitled Stream",
     isLive: false,

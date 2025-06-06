@@ -1,4 +1,5 @@
-// plugins/mistral_bridge/index.js
+// plugins/bridges/mistral/index.js
+// TODO: refactor 0
 import fetch from "node-fetch";
 
 import { handle_event } from "../discord";

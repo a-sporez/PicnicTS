@@ -1,4 +1,5 @@
-// plugins/greeter/index.js
+// plugins/apps/greeter/index.js
+// TODO: refactor 9
 module.exports = {
     name: 'greeter',
     init: async (context) => {

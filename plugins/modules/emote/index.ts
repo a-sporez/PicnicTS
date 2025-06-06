@@ -1,5 +1,5 @@
-// plugins/emote_module/index.js
-
+// plugins/modules/emote/index.ts
+// TODO: refactor 12
 const EMOTE_MAPS = {
     ':smile:': '😄',
     ':fire:': '🔥',

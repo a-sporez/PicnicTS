@@ -1,3 +1,5 @@
+// /core/EventBus.ts
+// TODO: review 4
 const subscribers: Array<Function> = [];
 
 function subscribe(fn: Function) {

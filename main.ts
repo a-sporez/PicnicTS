@@ -1,5 +1,5 @@
-// main.js **APP ENTRY POINT**
-//
+// main.ts **APP ENTRY POINT**
+// TODO: refactor 1
 import { createContext } from "./core/context";
 import { loadPlugins } from "./core/PluginManager";
 import { subscribe } from "./core/EventBus";

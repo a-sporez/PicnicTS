@@ -328,10 +328,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sapphire/snowflake@npm:3.5.3, @sapphire/snowflake@npm:^3.5.3":
+"@sapphire/snowflake@npm:3.5.3":
   version: 3.5.3
   resolution: "@sapphire/snowflake@npm:3.5.3"
   checksum: 10c0/361b6a3e16eea4eb48b2608005ce397d4163065ccd84077059a0f609b97fb9cc52a173d7a64bbfce6f5d1e77be0f9704fd72ef64683a3dc7e455e9b4a1c90db1
+  languageName: node
+  linkType: hard
+
+"@sapphire/snowflake@npm:^3.5.3":
+  version: 3.5.5
+  resolution: "@sapphire/snowflake@npm:3.5.5"
+  checksum: 10c0/ca6be43c4d90e7c5843bb6aaed59df5cae796404b6948a0fd03caa841d1fded20b64ef84a9df93325b1c4a01165956a3a4b4cb5d7387efee1611fa09488c7068
   languageName: node
   linkType: hard
 
@@ -401,11 +408,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:^22.15.29":
-  version: 22.15.29
-  resolution: "@types/node@npm:22.15.29"
+  version: 22.15.30
+  resolution: "@types/node@npm:22.15.30"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/602cc88c6150780cd9b5b44604754e0ce13983ae876a538861d6ecfb1511dff289e5576fffd26c841cde2142418d4bb76e2a72a382b81c04557ccb17cff29e1d
+  checksum: 10c0/ca330ac0e7fd502686d6df115fcc606aba46fd334220f749bbba2f639accdadcb23f7900603ceccdc8240be736739cad5c0b87c0fa92c9255a4dff245f07d664
   languageName: node
   linkType: hard
 
@@ -1194,6 +1201,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hyphaenet@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "hyphaenet@workspace:."
+  dependencies:
+    "@types/dotenv": "npm:^8.2.3"
+    "@types/express": "npm:^5.0.2"
+    "@types/node": "npm:^22.15.29"
+    discord-api-types: "npm:^0.38.11"
+    discord.js: "npm:^14.19.3"
+    dotenv: "npm:^16.5.0"
+    express: "npm:^5.1.0"
+    fs: "npm:^0.0.1-security"
+    node-fetch: "npm:^3.3.2"
+    path: "npm:^0.12.7"
+    tsx: "npm:^4.19.4"
+    typescript: "npm:^5.8.3"
+  languageName: unknown
+  linkType: soft
+
 "iconv-lite@npm:0.6.3, iconv-lite@npm:^0.6.2, iconv-lite@npm:^0.6.3":
   version: 0.6.3
   resolution: "iconv-lite@npm:0.6.3"
@@ -1481,13 +1507,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-bin-setup@npm:^1.0.0":
-  version: 1.1.4
-  resolution: "node-bin-setup@npm:1.1.4"
-  checksum: 10c0/2cd8f92cafb28c8b4bd65ff91d1b96f65a345d2ee1eee689c47255356568366103436188229f1337f881ac6315a2b6622b6df7ceb7b9631ff45344d68f2d43b4
-  languageName: node
-  linkType: hard
-
 "node-domexception@npm:^1.0.0":
   version: 1.0.0
   resolution: "node-domexception@npm:1.0.0"
@@ -1523,17 +1542,6 @@ __metadata:
   bin:
     node-gyp: bin/node-gyp.js
   checksum: 10c0/bd8d8c76b06be761239b0c8680f655f6a6e90b48e44d43415b11c16f7e8c15be346fba0cbf71588c7cdfb52c419d928a7d3db353afc1d952d19756237d8f10b9
-  languageName: node
-  linkType: hard
-
-"node@npm:^22.16.0":
-  version: 22.16.0
-  resolution: "node@npm:22.16.0"
-  dependencies:
-    node-bin-setup: "npm:^1.0.0"
-  bin:
-    node: bin/node
-  checksum: 10c0/7caf4ad1ca541e6f34f55e772729514688fdd46458efeb2da22a6aba0bf482cba3451249ffede1d3ef6baff2a14aff3a7327b68721c12a191d826bac1a51088a
   languageName: node
   linkType: hard
 
@@ -1627,26 +1635,6 @@ __metadata:
   checksum: 10c0/f795ce5438a988a590c7b6dfd450ec9baa1c391a8be4c2dea48baa6e0f5b199e56cd83b8c9ebf3991b81bea58236d2c32bdafe2c17a2e70c3a2e4c69891ade59
   languageName: node
   linkType: hard
-
-"picnicjs@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "picnicjs@workspace:."
-  dependencies:
-    "@types/dotenv": "npm:^8.2.3"
-    "@types/express": "npm:^5.0.2"
-    "@types/node": "npm:^22.15.29"
-    discord-api-types: "npm:^0.38.11"
-    discord.js: "npm:^14.19.3"
-    dotenv: "npm:^16.5.0"
-    express: "npm:^5.1.0"
-    fs: "npm:^0.0.1-security"
-    node: "npm:^22.16.0"
-    node-fetch: "npm:^3.3.2"
-    path: "npm:^0.12.7"
-    tsx: "npm:^4.19.4"
-    typescript: "npm:^5.8.3"
-  languageName: unknown
-  linkType: soft
 
 "picomatch@npm:^4.0.2":
   version: 4.0.2

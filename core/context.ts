@@ -1,3 +1,5 @@
+// /core/context.ts
+// TODO: refactor 5
 import { publishEvent } from "./EventBus";
 
 function createContext() {

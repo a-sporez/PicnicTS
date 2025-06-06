@@ -1,5 +1,5 @@
-// plugins/client_config/index.js
-//
+// plugins/config/client/index.js
+// TODO: refactor 14
 // in memory config store
 const configs = new Map();
 

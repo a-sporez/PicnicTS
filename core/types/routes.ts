@@ -1,3 +1,5 @@
+// /core/types/routes.ts
+// TODO: refactor 8
 import type { RequestBody } from "discord.js";
 
 interface IncomingEvent extends RequestBody {

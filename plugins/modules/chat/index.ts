@@ -1,4 +1,5 @@
-// plugins/chat_modules/index.js
+// plugins/modules/chat/index.js
+// TODO: refactor 11
 import type { IncomingEvent } from "@/core/types/routes";
 import { clientConfig } from "@plugins/configs";
 
