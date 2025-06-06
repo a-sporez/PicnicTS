@@ -14,16 +14,11 @@
   "scripts": {
     "dev-main": "tsx watch --env-file='./.env.dev' ./main.ts --watch-path='./**/*.ts ./*.ts'",
     "dev-serv": "tsx watch --env-file='./.env.dev' ./server.ts",
-    "dev": "yarn dev-main && yarn dev-serv",
+    "dev": "yarn dev-main & yarn dev-serv",
     "start": "tsx --env-file='./.env.prod' ./server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "AI",
-    "LLM",
-    "discord",
-    "bot"
-  ],
+  "keywords": ["AI", "LLM", "discord", "bot"],
   "author": "Spore,Xanazf",
   "license": "MIT",
   "devDependencies": {
