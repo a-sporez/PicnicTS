@@ -1,15 +1,18 @@
 // /core/EventBus.ts
-// TODO: review 4
-const subscribers: Array<Function> = [];
+// WIP: strongly typed implementation
+const subscribers: Record<string, Array<(event: unknown) =>
+  void | Promise<void>>> = {};
 
-function subscribe(fn: Function) {
-  subscribers.push(fn);
+function listen(eventType: string, handler: (event: unknown) => void) {
+  if (!subscribers[eventType]) subscribers[eventType] = [];
+  subscribers[eventType].push(handler);
 }
 
-function publishEvent(event: unknown) {
-  for (const fn of subscribers) {
-    fn(event);
+async function emit(eventType: string, event: unknown) {
+  const handlers = subscribers[eventType] || [];
+  for (const func of handlers) {
+    await func(event);
   }
 }
 
-export { subscribe, publishEvent };
+export {listen, emit};

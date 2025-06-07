@@ -28,4 +28,10 @@ interface Config extends InternalPlugin {
   readonly configName: string;
 }
 
-export type { InternalPlugin, Bridge, Module, App, Config };
+export type {
+  InternalPlugin,
+  Bridge,
+  Module,
+  App,
+  Config
+};

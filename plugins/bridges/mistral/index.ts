@@ -12,20 +12,25 @@ import type {
 // WIP: turn this and the rest of internal plugins
 // into classes extending their respective interfaces
 class MistralBridge implements Bridge {
-  bridgeName = "mistral_bridge";
+  pluginType = 'bridge'
+  bridgeName = 'mistral';
   ctx: PluginContext | undefined;
 
   // called on init, stores context for later
   init(ctx: PluginContext) {
     this.ctx = ctx;
     ctx.logger.info(`[${this.bridgeName}] initialized`);
-    ctx.bus.on(
+    // listen for specific event
+    ctx.bus.listen(
       "discord::message:received",
-      this.handleEvent.bind(this)
+      // assert type and bind instance as handler
+      async (event) => {
+        this.handleEvent.bind(event as IncomingEvent);
+      }
     );
   }
   async shutdown(): Promise<void> {
-    //this.ctx?.logger?.info?.("[mistral_bridge] shutdown");
+    // shutdown logic goes here
     console.log(`[${this.bridgeName}] shutdown`);
   }
   // handles messages coming from Discord vie event bus
