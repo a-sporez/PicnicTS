@@ -1,5 +1,4 @@
 // plugins/bridges/mistral/index.js
-// WIP+: ESM convert
 import fetch from "node-fetch";
 
 import type { PluginContext } from "@localtypes/context";
@@ -9,8 +8,7 @@ import type {
   IncomingEvent,
 } from "@localtypes/routes";
 
-// WIP: turn this and the rest of internal plugins
-// into classes extending their respective interfaces
+// WIP+: monitoring context
 class MistralBridge implements Bridge {
   pluginType = 'bridge'
   bridgeName = 'mistral';

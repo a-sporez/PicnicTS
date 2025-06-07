@@ -1,5 +1,5 @@
 // /server.ts
-// TODO: refactor 2
+// TODO: fix body-parser dependency
 import express from "express";
 import bodyParser from "body-parser";
 

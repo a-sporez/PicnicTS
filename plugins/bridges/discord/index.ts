@@ -1,5 +1,5 @@
 // plugins/bridge/discord/index.js
-// WIP+: ESM convert
+// TODO: type contextRef properly
 import {Client, GatewayIntentBits} from 'discord.js';
 import type {PluginContext} from '@localtypes/context';
 import type {Bridge} from '@localtypes/plugins'
