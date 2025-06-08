@@ -1,0 +1,154 @@
+<!DOCTYPE html><meta charset="utf-8"><h1 id="sporedrop--typescript-compatible-reference-guide">SporeDrop – TypeScript-Compatible Reference Guide</h1>
+<hr>
+<h2 id="purpose">Purpose</h2>
+<p>This Go module acts as a <strong>middleware service</strong> between a chat client (e.g., Discord) and the <strong>Mistral LLM API</strong>, enabling contextual, rate-limited interactions via HTTP requests.</p>
+<p>Its output is formatted to match the expectations of the TypeScript plugin system and emits events compatible with <code>mistral_bridge</code>.</p>
+<hr>
+<h2 id="core-components">Core Components</h2>
+<h3 id="1-dependencies">1. Dependencies</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#9ECBFF">"github.com/gin-gonic/gin"</span></span>
+<span class="line"><span style="color:#9ECBFF">"github.com/joho/godotenv"</span></span></code></pre>
+<ul>
+<li><code>gin</code>: lightweight web framework for routing HTTP requests</li>
+<li><code>godotenv</code>: loads environment variables from <code>.env</code> file</li>
+</ul>
+<hr>
+<h2 id="data-structures">Data Structures</h2>
+<h3 id="-chatinput">➤ <code>ChatInput</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ChatInput</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  UserID  </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"user"`</span></span>
+<span class="line"><span style="color:#E1E4E8">  Message </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"message"`</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ul>
+<li>Represents incoming request payload</li>
+<li><code>UserID</code> is required for context memory and rate limiting</li>
+</ul>
+<h3 id="-chatoutput">➤ <code>ChatOutput</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> ChatOutput</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  Reply </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"reply"`</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ul>
+<li>Response structure returned to the caller</li>
+</ul>
+<h3 id="-message">➤ <code>Message</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> Message</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  Role    </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"role"`</span></span>
+<span class="line"><span style="color:#E1E4E8">  Content </span><span style="color:#F97583">string</span><span style="color:#9ECBFF"> `json:"content"`</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ul>
+<li>Used internally for context memory and sent to Mistral API</li>
+</ul>
+<h3 id="-mistralrequest--mistralresponse">➤ <code>MistralRequest</code> &#x26; <code>MistralResponse</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> MistralRequest</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  Messages    []</span><span style="color:#B392F0">Message</span></span>
+<span class="line"><span style="color:#E1E4E8">  Temperature </span><span style="color:#F97583">float32</span></span>
+<span class="line"><span style="color:#E1E4E8">  Stream      </span><span style="color:#F97583">bool</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">type</span><span style="color:#B392F0"> MistralResponse</span><span style="color:#F97583"> struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  Choices []</span><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    Message </span><span style="color:#F97583">struct</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">      Content </span><span style="color:#F97583">string</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ul>
+<li>Used to format Mistral API requests and decode responses</li>
+</ul>
+<hr>
+<h2 id="global-state">Global State</h2>
+<h3 id="-memorystore">➤ <code>memoryStore</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">var</span><span style="color:#E1E4E8"> memoryStore </span><span style="color:#F97583">=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">map</span><span style="color:#E1E4E8">[</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">][]</span><span style="color:#B392F0">Message</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<ul>
+<li>Per-user memory used for context window</li>
+</ul>
+<h3 id="-lastseen">➤ <code>lastSeen</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">var</span><span style="color:#E1E4E8"> lastSeen </span><span style="color:#F97583">=</span><span style="color:#B392F0"> make</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">map</span><span style="color:#E1E4E8">[</span><span style="color:#F97583">string</span><span style="color:#E1E4E8">]</span><span style="color:#B392F0">time</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">Time</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<ul>
+<li>Tracks last request timestamp per user (cooldown enforcement)</li>
+</ul>
+<hr>
+<h2 id="initialization">Initialization</h2>
+<h3 id="-init">➤ <code>init()</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> init</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#E1E4E8">  godotenv.</span><span style="color:#B392F0">Load</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ul>
+<li>Loads configuration from <code>.env</code></li>
+</ul>
+<h3 id="-main">➤ <code>main()</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#E1E4E8">router.</span><span style="color:#B392F0">POST</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"/chat"</span><span style="color:#E1E4E8">, handleChat)</span></span></code></pre>
+<ul>
+<li>Launches server on <code>PORT</code> (default: 8080)</li>
+<li>Accepts structured chat inputs</li>
+</ul>
+<hr>
+<h2 id="endpoint-logic">Endpoint Logic</h2>
+<h3 id="-handlechatc-gincontext">➤ <code>handleChat(c *gin.Context)</code></h3>
+<ol>
+<li>Validates payload (requires non-empty <code>UserID</code> and <code>Message</code>)</li>
+<li>Applies rate limit (3s cooldown)</li>
+<li>Appends user message to context memory</li>
+<li>Calls <code>callMistral()</code> with trimmed memory</li>
+<li>Stores assistant reply</li>
+<li>Returns <code>{ "reply": "..." }</code></li>
+</ol>
+<hr>
+<h2 id="utility-trim-memory">Utility: Trim Memory</h2>
+<h3 id="-trimmemory">➤ <code>trimMemory()</code></h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="go"><code><span class="line"><span style="color:#F97583">func</span><span style="color:#B392F0"> trimMemory</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">messages</span><span style="color:#E1E4E8"> []</span><span style="color:#B392F0">Message</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">limit</span><span style="color:#F97583"> int</span><span style="color:#E1E4E8">) []</span><span style="color:#B392F0">Message</span></span></code></pre>
+<ul>
+<li>Retains only most recent messages (default: 5–20)</li>
+</ul>
+<hr>
+<h2 id="llm-call">LLM Call</h2>
+<h3 id="-callmistraluserid-string">➤ <code>callMistral(userID string)</code></h3>
+<ol>
+<li>Trims memory</li>
+<li>Constructs <code>MistralRequest</code></li>
+<li>Sends request using bearer token</li>
+<li>Returns <code>reply</code> string from first <code>Choices[0].Message.Content</code></li>
+</ol>
+<hr>
+<h2 id="environment-variables">Environment Variables</h2>
+<p>These must be defined in <code>.env</code>:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>PORT=8080</span></span>
+<span class="line"><span>MISTRAL_URL=https://api.mistral.ai/v1/chat/completions</span></span>
+<span class="line"><span>MISTRAL_TOKEN=your_mistral_api_key</span></span></code></pre>
+<hr>
+<h2 id="example-request">Example Request</h2>
+<h3 id="request">Request</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">POST /chat</span></span>
+<span class="line"><span style="color:#E1E4E8">Content-Type: application/json</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "user"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"123456"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "message"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"What's the weather like on Mars?"</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<h3 id="response">Response</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "reply"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"It’s dry and dusty as usual. Bring sunscreen!"</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="protections-implemented">Protections Implemented</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Feature</th><th>Behavior</th></tr></thead><tbody><tr><td>Rate Limiter</td><td>3 seconds per user (<code>lastSeen</code>)</td></tr><tr><td>Memory Control</td><td>Memory trimmed per user (<code>trimMemory</code>)</td></tr><tr><td>Input Check</td><td>Rejects if <code>UserID</code> is missing</td></tr></tbody></table>

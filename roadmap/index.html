@@ -1,0 +1,95 @@
+<!DOCTYPE html><meta charset="utf-8"><h1 id="roadmap-v1--typescript-plugin-host">Roadmap v1 – TypeScript Plugin Host</h1>
+<p>A realistic, incremental plan that turns the current <strong>TypeScript + Yarn v4</strong> codebase into a <strong>Keycloak-secured, plugin-driven streaming toolkit</strong> with a live Astro dashboard.</p>
+<hr>
+<h2 id="0--house-keeping--refactoring">0 — House-keeping &#x26; Refactoring</h2>
+<p><strong>Refactor 0-15 Goals</strong></p>
+<ul>
+<li>Finish CJS→ESM conversion for all plugins</li>
+<li>Switch from require to dynamic import(), with error and logger.</li>
+<li>Centralize sporedrop server to global interface for other LLM services.</li>
+<li>Structured Logger Wrapper.</li>
+</ul>
+<hr>
+<h2 id="1--authentication-façade">1 — Authentication Façade</h2>
+<p><strong>Goal:</strong> All HTTP entry points validate a Keycloak JWT (or a pre-shared Discord/Twitch token) before emitting events.</p>
+<ol>
+<li>Spin up Keycloak via Docker (Quarkus image).</li>
+<li>Add <code>express-jwt</code> or Keycloak middleware in <code>server.ts</code>.</li>
+<li>Pass <code>req.auth</code> into <code>context.user</code> when emitting events so plugins <em>may</em> inspect it.</li>
+</ol>
+<hr>
+<h2 id="2--persistence-layer-abstractions">2 — Persistence Layer Abstractions</h2>
+<p><strong>Goal:</strong> Replace in-memory objects with Redis behind a thin interface.</p>
+<ol>
+<li>Create <code>/core/store.ts</code> exporting helpers (<code>chatLog</code>, <code>clientConfig</code>, <code>streamConfig</code>).</li>
+<li>Refactor <strong>only</strong> <code>chat_module</code> and <code>client_config</code> to use the store.</li>
+<li>Unit-test the store with <code>redis-mock</code> or local dev mode.</li>
+</ol>
+<hr>
+<h2 id="3--external-service-bridges">3 — External-Service Bridges</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Bridge plugin</th><th>MVP events</th><th>Notes</th></tr></thead><tbody><tr><td><code>twitch_bridge</code></td><td><code>twitch::chat:received</code>, <code>twitch::follow</code>, <code>twitch::message:send</code></td><td>Start with EventSub webhooks.</td></tr><tr><td><code>youtube_bridge</code></td><td><code>yt::chat:received</code>, <code>yt::superchat</code>, <code>yt::message:send</code></td><td>Begin with polling live-chat REST.</td></tr></tbody></table>
+<p>Pattern: <strong>translate only</strong>; never call other plugins directly.</p>
+<hr>
+<h2 id="4--websocket--sse-fan-out">4 — WebSocket / SSE Fan-out</h2>
+<p>Add <code>socket.io</code> (or SSE) in <code>server.ts</code>.
+Broadcast every event from the central <code>EventBus.subscribe</code> to connected dashboard clients.</p>
+<hr>
+<h2 id="5--astro-dashboard-skeleton--keycloak-login">5 — Astro Dashboard Skeleton (+ Keycloak login)</h2>
+<ol>
+<li>
+<p><code>pnpm create astro@latest dashboard</code> → <code>/frontend</code>.</p>
+</li>
+<li>
+<p>Implement an island that:</p>
+<ul>
+<li>swaps Keycloak token for the socket connection,</li>
+<li>streams <code>chat::message:emoted</code> feed,</li>
+<li>shows current <code>stream_config</code> &#x26; a “go live” button (emits <code>stream::config:update</code>).</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="6--operational-polish">6 — Operational Polish</h2>
+<ul>
+<li><strong>docker-compose</strong> for Node (TS), Go <code>SporeDrop</code>, Redis, Keycloak.</li>
+<li><code>/healthz</code> and <code>/readyz</code> endpoints in <code>server.ts</code>.</li>
+<li>CI checks (<code>yarn test</code>, <code>go test ./...</code>).</li>
+<li>Typedoc / Go doc generation under <code>yarn run docs</code>.</li>
+</ul>
+<hr>
+<h3 id="why-this-order">Why this order?</h3>
+<ol>
+<li><strong>Auth first</strong> – everything else builds on it.</li>
+<li><strong>State next</strong> – Redis enables horizontal scaling.</li>
+<li><strong>Bridges</strong> – independent; deliver user value quickly.</li>
+<li><strong>Realtime feed</strong> – unblocks UI work.</li>
+<li><strong>UI</strong> – consumes stable auth &#x26; data contracts.</li>
+<li><strong>Polish</strong> – continuous hardening once basics work.</li>
+</ol>
+<hr>
+<h2 id="quick-wins-for-keycloak--external-service-wrapper">Quick wins for “Keycloak = external-service wrapper”</h2>
+<ul>
+<li><strong>Service accounts:</strong> one Keycloak client per external platform (Discord, Twitch).</li>
+<li><strong>User federation later:</strong> map Discord IDs → Keycloak users for RBAC without refactoring events.</li>
+</ul>
+<hr>

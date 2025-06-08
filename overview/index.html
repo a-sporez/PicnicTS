@@ -1,0 +1,296 @@
+<!DOCTYPE html><meta charset="utf-8"><h1 id="picnicts--typescript-streamer-plugin-system">PicnicTS – TypeScript Streamer Plugin System</h1>
+<p>Node.js + TypeScript plugin-hosting backend with Go chatbot microservice (SporeDrop).</p>
+<p>This system uses a modular, type-safe, event-based architecture to bridge Discord, LLM APIs, and internal plugin logic. Plugin communication occurs through a central event bus and strongly typed interfaces. External HTTP injection is supported via Express.</p>
+<hr>
+<h2 id="directory-map">Directory Map</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>/                (project root)</span></span>
+<span class="line"><span>│  package.json</span></span>
+<span class="line"><span>│  package-lock.json</span></span>
+<span class="line"><span>│  tsconfig.json</span></span>
+<span class="line"><span>│  biome.json</span></span>
+<span class="line"><span>│  server.config.json</span></span>
+<span class="line"><span>│  server.ts            ← HTTP entry-point (not shown)</span></span>
+<span class="line"><span>│  main.ts              ← in-process dev runner</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├─core</span></span>
+<span class="line"><span>│  │  context.ts        ← creates the “emit/ logger” ctx</span></span>
+<span class="line"><span>│  │  EventBus.ts       ← simple pub/sub bus</span></span>
+<span class="line"><span>│  │  PluginManager.ts  ← dynamic loader</span></span>
+<span class="line"><span>│  └─types</span></span>
+<span class="line"><span>│       plugins.ts      ← InternalPlugin, Bridge types</span></span>
+<span class="line"><span>│       routes.ts       ← IncomingEvent shape</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>├─plugins</span></span>
+<span class="line"><span>│  ├─modules</span></span>
+<span class="line"><span>│  │   │ index.ts       ← re-exports chat &#x26; emote</span></span>
+<span class="line"><span>│  │   ├─chat</span></span>
+<span class="line"><span>│  │   │   index.ts     ← logs &#x26; rebroadcasts chat</span></span>
+<span class="line"><span>│  │   └─emote</span></span>
+<span class="line"><span>│  │       index.ts     ← emoji substitution pass-through</span></span>
+<span class="line"><span>│  ├─configs</span></span>
+<span class="line"><span>│  │   │ index.ts       ← re-exports client &#x26; stream</span></span>
+<span class="line"><span>│  │   ├─client</span></span>
+<span class="line"><span>│  │   │   index.ts     ← per-client config store</span></span>
+<span class="line"><span>│  │   └─stream</span></span>
+<span class="line"><span>│  │       index.ts     ← stream metadata store</span></span>
+<span class="line"><span>│  ├─bridges</span></span>
+<span class="line"><span>│  │   │ index.ts       ← re-exports discord &#x26; mistral</span></span>
+<span class="line"><span>│  │   ├─discord</span></span>
+<span class="line"><span>│  │   │   index.js     ← Discord bot ↔ EventBus</span></span>
+<span class="line"><span>│  │   └─mistral</span></span>
+<span class="line"><span>│  │       index.ts     ← LLM call / chunking logic</span></span>
+<span class="line"><span>│  └─apps</span></span>
+<span class="line"><span>│      │ index.ts       ← re-exports greeter</span></span>
+<span class="line"><span>│      └─greeter</span></span>
+<span class="line"><span>│          index.ts     ← “hello” demo plugin</span></span>
+<span class="line"><span>│</span></span>
+<span class="line"><span>└─SporeDrop            (Go micro-service)</span></span>
+<span class="line"><span>    main.go            ← Mistral proxy + memory store</span></span>
+<span class="line"><span>    go.mod / go.sum</span></span></code></pre>
+<hr>
+<h2 id="plugin-interface-typescript">Plugin Interface (TypeScript)</h2>
+<p>All plugins must conform to this interface:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#F97583">export</span><span style="color:#F97583"> interface</span><span style="color:#B392F0"> Plugin</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#FFAB70">  pluginType</span><span style="color:#F97583">?:</span><span style="color:#79B8FF"> string</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">  init</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">context</span><span style="color:#F97583">:</span><span style="color:#B392F0"> PluginContext</span><span style="color:#E1E4E8">)</span><span style="color:#F97583">:</span><span style="color:#B392F0"> Promise</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#79B8FF">void</span><span style="color:#E1E4E8">>;</span></span>
+<span class="line"><span style="color:#B392F0">  handleEvent</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">event</span><span style="color:#F97583">:</span><span style="color:#E1E4E8"> { </span><span style="color:#FFAB70">type</span><span style="color:#F97583">:</span><span style="color:#79B8FF"> string</span><span style="color:#E1E4E8">; [</span><span style="color:#FFAB70">key</span><span style="color:#F97583">:</span><span style="color:#79B8FF"> string</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">:</span><span style="color:#79B8FF"> unknown</span><span style="color:#E1E4E8"> })</span><span style="color:#F97583">:</span><span style="color:#B392F0"> Promise</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#79B8FF">void</span><span style="color:#E1E4E8">> </span><span style="color:#F97583">|</span><span style="color:#79B8FF"> void</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#B392F0">  shutdown</span><span style="color:#E1E4E8">()</span><span style="color:#F97583">:</span><span style="color:#B392F0"> Promise</span><span style="color:#E1E4E8">&#x3C;</span><span style="color:#79B8FF">void</span><span style="color:#E1E4E8">>;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<ul>
+<li><code>pluginType</code> is optional but recommended (<code>"bridge"</code>, <code>"module"</code>, etc).</li>
+<li>Method names are now <code>init</code>, <code>handleEvent</code>, <code>shutdown</code>.</li>
+</ul>
+<p>Plugins are loaded dynamically and passed the shared <code>context</code> on startup.
+They handle events via <code>handleEvent</code> and may clean up using <code>shutdown()</code>.</p>
+<hr>
+<h2 id="core-modules">Core Modules</h2>
+<h3 id="corecontextts"><code>core/context.ts</code></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>createContext()</code></td><td><code>Function</code></td><td>Returns a shared context object for plugins</td></tr><tr><td><code>context.emit()</code></td><td><code>Function</code></td><td>Emits event objects to the EventBus</td></tr><tr><td><code>context.logger</code></td><td><code>Logger</code></td><td>Provided logger (e.g., console or Pino)</td></tr><tr><td><code>context.hostId</code></td><td><code>string</code></td><td>ID string identifying the module host instance</td></tr><tr><td><code>context.bus</code></td><td><code>EventBus</code></td><td>The shared event bus with Listen/Publish</td></tr></tbody></table>
+<hr>
+<h3 id="coreeventbusts"><code>core/EventBus.ts</code></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>Listen</code></td><td><code>(eventType: string, handler: (event: unknown) => void | Promise&#x3C;void>) => void</code></td><td>Register a listener for a specific event type</td></tr><tr><td><code>Publish</code></td><td><code>(eventType: string, event: unknown) => Promise&#x3C;void></code></td><td>Emit an event to all listeners for this type</td></tr><tr><td><code>Event</code></td><td><code>{ type: string; payload: object; meta?: object }</code></td><td>Standardized system event object</td></tr></tbody></table>
+<hr>
+<h3 id="corepluginmanagerts"><code>core/PluginManager.ts</code></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>loadPlugins()</code></td><td><code>Function</code></td><td>Loads all plugins from <code>/plugins</code>, calls <code>init()</code></td></tr><tr><td></td><td></td><td>Uses <code>import()</code> dynamically with <code>default</code> export</td></tr></tbody></table>
+<hr>
+<h2 id="express-api-serverts">Express API (<code>server.ts</code>)</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Route</th><th>Method</th><th>Description</th></tr></thead><tbody><tr><td><code>/events/incoming</code></td><td>POST</td><td>Accepts <code>{ type, payload }</code> and routes to internal EventBus</td></tr></tbody></table>
+<hr>
+<h2 id="plugin-summary-table">Plugin Summary Table</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Plugin</th><th>Handles Events</th><th>Emits Events</th><th>Notes</th></tr></thead><tbody><tr><td><code>chat_module</code></td><td><code>chat::message</code></td><td><code>chat::message:received</code></td><td>Stores and rebroadcasts chat</td></tr><tr><td><code>emote_module</code></td><td><code>chat::message:received</code></td><td><code>chat::message:emoted</code></td><td>Transforms emojis</td></tr><tr><td><code>stream_config</code></td><td><code>stream::config:update</code>, <code>stream::config:get</code></td><td>–</td><td>Logs stream metadata</td></tr><tr><td><code>client_config</code></td><td><code>client::config:update</code>, <code>client::config:get</code></td><td><code>client::config:changed</code></td><td>Tracks clientId configs</td></tr><tr><td><code>discord_bridge</code></td><td><code>discord::message:send</code></td><td><code>discord::message:received</code></td><td>Discord.js message bridge</td></tr><tr><td><code>mistral_bridge</code></td><td><code>discord::message:received</code></td><td><code>discord::message:send</code> (LLM reply)</td><td>Forwards to Go API</td></tr><tr><td><code>greeter</code></td><td><code>hello</code></td><td>–</td><td>Simple debugging plugin</td></tr></tbody></table>
+<hr>
+<h2 id="example-eventbus-usage-updated"><strong>Example EventBus Usage (Updated)</strong></h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#6A737D">// Register an event handler for a specific event type</span></span>
+<span class="line"><span style="color:#E1E4E8">context.bus.</span><span style="color:#B392F0">Listen</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"discord::message:send"</span><span style="color:#E1E4E8">, (</span><span style="color:#FFAB70">event</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> { </span><span style="color:#F97583">...</span><span style="color:#E1E4E8"> });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// Publish an event to all listeners</span></span>
+<span class="line"><span style="color:#E1E4E8">context.bus.</span><span style="color:#B392F0">Publish</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"discord::message:send"</span><span style="color:#E1E4E8">, {</span></span>
+<span class="line"><span style="color:#E1E4E8">  type: </span><span style="color:#9ECBFF">"discord::message:send"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  payload: { </span><span style="color:#F97583">...</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#E1E4E8">  meta: { plugin: </span><span style="color:#9ECBFF">"my_plugin"</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">});</span></span></code></pre>
+<hr>
+<h2 id="event-object-standard"><strong>Event Object Standard</strong></h2>
+<p>All events passed through the bus must have:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="ts"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#B392F0">  type</span><span style="color:#E1E4E8">: string; </span><span style="color:#6A737D">// The event type (e.g. "discord::message:send")</span></span>
+<span class="line"><span style="color:#B392F0">  payload</span><span style="color:#E1E4E8">: object; </span><span style="color:#6A737D">// Event-specific data</span></span>
+<span class="line"><span style="color:#E1E4E8">  meta</span><span style="color:#F97583">?:</span><span style="color:#E1E4E8"> object;   </span><span style="color:#6A737D">// Optional metadata</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="documentation/SporeDrop.md">SporeDrop</a> – Go chatbot backend</li>
+<li><a href="documentation/roadmap_v1.md">roadmap_v1</a> – Project plan and upgrade path</li>
+</ul>
+<h2 id="component-design-blueprint">Component Design Blueprint</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>                    +---------------------------+</span></span>
+<span class="line"><span>                    |      Frontend App (UI)    |</span></span>
+<span class="line"><span>                    |     (Astro / WebSocket)   |</span></span>
+<span class="line"><span>                    +------------+--------------+</span></span>
+<span class="line"><span>                                 |</span></span>
+<span class="line"><span>                     Token Auth + WebSocket</span></span>
+<span class="line"><span>                                 ↓</span></span>
+<span class="line"><span>            +------------------ API Gateway ------------------+</span></span>
+<span class="line"><span>            |     Express (server.ts) + middleware            |</span></span>
+<span class="line"><span>            |     - Rate limits                                 |</span></span>
+<span class="line"><span>            |     - JWT auth (Keycloak planned)                |</span></span>
+<span class="line"><span>            +------------------+-------------------------------+</span></span>
+<span class="line"><span>                               ↓</span></span>
+<span class="line"><span>                  +------------↓------------+</span></span>
+<span class="line"><span>                  |     Plugin Host (TS)    |</span></span>
+<span class="line"><span>                  |        main.ts          |</span></span>
+<span class="line"><span>                  +----+----------+---------+</span></span>
+<span class="line"><span>                       |          |</span></span>
+<span class="line"><span>            +----------+   +------+-------+--------+</span></span>
+<span class="line"><span>            | EventBus.ts | PluginManager.ts       |</span></span>
+<span class="line"><span>            +-------------+------------------------+</span></span>
+<span class="line"><span>                       |           |           |</span></span>
+<span class="line"><span>                       ↓           ↓           ↓</span></span>
+<span class="line"><span>                 +-----+-----+ +---+----+ +-----+------+</span></span>
+<span class="line"><span>                 | streamCfg | | client | | chatModule |</span></span>
+<span class="line"><span>                 |  plugin   | | plugin | | plugin     |</span></span>
+<span class="line"><span>                 +-----+-----+ +--------+ +------------+</span></span>
+<span class="line"><span>                       |           |           |</span></span>
+<span class="line"><span>                       ↓           ↓           ↓</span></span>
+<span class="line"><span>             Redis (future)   Redis (future)   In-memory</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>      ⬑ All plugins communicate via shared event bus</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>                       +--------------------+</span></span>
+<span class="line"><span>                       |   Keycloak Server  |</span></span>
+<span class="line"><span>                       | (OAuth2, RBAC)     |</span></span>
+<span class="line"><span>                       +--------------------+</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>                       +--------------------+</span></span>
+<span class="line"><span>                       |     SporeDrop      |</span></span>
+<span class="line"><span>                       |  Go chatbot API    |</span></span>
+<span class="line"><span>                       +--------------------+</span></span></code></pre>
