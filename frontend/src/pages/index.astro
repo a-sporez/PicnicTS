@@ -1,4 +1,5 @@
 ---
+import '../styles/global.css';
 const base = import.meta.env.BASE_URL;
 const docs = [
   { name: "Overview", link: `${base}overview/` },
@@ -9,20 +10,22 @@ const docs = [
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="icon" type="image/svg+xml+ico" href={`${base}favicon.ico`} />
     <meta name="viewport" content="width=device-width" />
     <title>PicnicTS Wiki</title>
   </head>
-  <body style="max-width: 700px; margin: 3rem auto; font-family: sans-serif;">
-    <h1 style="margin-bottom:2rem;">PicnicTS Documentation</h1>
-    <ul>
-      {docs.map(doc => (
-        <li style="margin:1rem 0;">
-          <a href={doc.link} style="font-size:1.25rem; text-decoration:underline;">
-            {doc.name}
-          </a>
-        </li>
-      ))}
-    </ul>
+  <body class="min-h-screen bg-[#22281a] text-[#fdf6e3] font-sans">
+    <div class="max-w-2xl mx-auto pt-16">
+      <h1 class="mb-8 text-3xl font-bold">PicnicTS Documentation</h1>
+      <ul>
+        {docs.map(doc => (
+          <li class="mb-4">
+            <a href={doc.link} class="text-xl underline hover:text-yellow-400">
+              {doc.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   </body>
 </html>

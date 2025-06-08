@@ -1,0 +1,47 @@
+---
+import '../styles/global.css';
+const { current } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const pages = [
+  { name: "Overview", link: `${base}overview/` },
+  { name: "SporeDrop", link: `${base}sporedrop/` },
+  { name: "Roadmap", link: `${base}roadmap/` },
+  { name: "Index", link: `${base}/` }
+];
+---
+
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml+ico" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <title>PicnicTS Wiki</title>
+    <style>
+      html, body, #__astro {
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen h-full bg-olive-dark text-beige-light font-sans flex">
+    <aside class="w-60 min-h-screen bg-olive-dark border-r border-beige-light flex flex-col p-6">
+      <div class="mb-8 text-2xl font-bold tracking-wide">PicnicTS</div>
+      <nav class="flex-1">
+        <ul class="space-y-2">
+          {pages.map(page => (
+            <li>
+              <a href={page.link}
+                 class={`block px-2 py-1 rounded hover:bg-beige-light hover:text-olive-dark transition ${
+                   current === page.link ? 'bg-beige-light text-olive-dark font-semibold' : ''
+                 }`}>
+                {page.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </aside>
+    <main class="flex-1 p-8 prose prose-invert max-w-none">
+      <slot />
+    </main>
+  </body>
+</html>

@@ -1,3 +1,8 @@
+---
+layout: ../layouts/DocsLayout.astro
+current: "/overview/"
+---
+
 # PicnicTS – TypeScript Streamer Plugin System
 
 Node.js + TypeScript plugin-hosting backend with Go chatbot microservice (SporeDrop).
@@ -212,3 +217,4 @@ All events passed through the bus must have:
                            |     SporeDrop      |
                            |  Go chatbot API    |
                            +--------------------+
+---

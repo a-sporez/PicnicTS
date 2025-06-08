@@ -1,3 +1,8 @@
+---
+layout: ../layouts/DocsLayout.astro
+current: "/roadmap/"
+---
+
 # Roadmap v1 – TypeScript Plugin Host
 
 A realistic, incremental plan that turns the current **TypeScript + Yarn v4** codebase into a **Keycloak-secured, plugin-driven streaming toolkit** with a live Astro dashboard.

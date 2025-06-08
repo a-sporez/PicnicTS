@@ -1,3 +1,8 @@
+---
+layout: ../layouts/DocsLayout.astro
+current: "/sporedrop/"
+---
+
 # SporeDrop – TypeScript-Compatible Reference Guide
 
 ---
