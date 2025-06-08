@@ -19,10 +19,10 @@ class MistralBridge implements Bridge {
     this.ctx = ctx;
     ctx.logger.info(`[${this.bridgeName}] initialized`);
     // listen for specific event
-    ctx.bus.listen(
+    ctx.bus.Publish(
       "discord::message:received",
       // assert type and bind instance as handler
-      async (event) => {
+      async (event: any) => {
         this.handleEvent.bind(event as IncomingEvent);
       }
     );

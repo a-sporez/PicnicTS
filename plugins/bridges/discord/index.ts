@@ -1,11 +1,10 @@
 // plugins/bridge/discord/index.js
-// TODO: type contextRef properly
+// WIP: properly typing context.
 import {Client, GatewayIntentBits} from 'discord.js';
 import type {PluginContext} from '@localtypes/context';
 import type {Bridge} from '@localtypes/plugins'
 
 let bot = null;
-let contextRef = null;
 
 class DiscordBridge implements Bridge {
     pluginName = 'bridge';
@@ -63,7 +62,7 @@ class DiscordBridge implements Bridge {
     },
 
     // listens for internal events like 'discord::message:send'
-    handlEvent (event: any) {
+    handleEvent (event: any) {
         if (event.type !== 'discord::message:send') return;
 
         const {content, channelId} = event.payload;

@@ -1,11 +1,13 @@
 // /core/context.ts
 // WIP: refactor 0
 // TODO: review 5
-import { publishEvent } from "./EventBus";
+import {Listen, Publish} from "./EventBus";
 import type {
   LoggerContext,
   PluginContext,
 } from "./types/context";
+
+type GlobalContext = Record<string, unknown>
 
 class ContextProvider {
   hostId: string;
@@ -16,8 +18,8 @@ class ContextProvider {
     day?: "numeric" | "2-digit";
   };
 
-  // TODO: get context
-  globalContext?: {};
+  // store global context
+  private _globalContext: GlobalContext = {};
 
   constructor() {
     this.hostId = "main-node-1";
@@ -36,31 +38,40 @@ class ContextProvider {
     console[ctx.severity](`[${datenow}]@${ctx.scope}: ${msg}`);
   }
 
-  emitter(content: string) {
-    publishEvent(content);
-    this.logger("event emitted", {
-      severity: "log",
-      scope: "global",
+  emitter(eventType: string, event: unknown) {
+    Publish(eventType, event);
+    this.logger(`event "${eventType}" emitted`, {
+      severity: 'log',
+      scope: 'global',
     });
   }
 
-  // TODO: get context
-  getter() {
-    return this.globalContext;
+  // get global context property
+  get globalContext(): GlobalContext {
+    return this._globalContext;
   }
 
-  // TODO: set context
-  setter(): void {}
+  // set global context properties, add validation or hooks here.
+  set globalContext(ctx: GlobalContext) {
+    this._globalContext = ctx;
+    this.logger("global context update", {
+      severity: 'log',
+      scope: 'global'
+    });
+  }
 }
 
+// factory pattern creates PluginContext object.
+// `emit` func expects event with a "type" field.
 function createContext(): PluginContext {
   return {
     hostId: "main-node-1",
     logger: console,
-    emit: (content: string) => {
-      publishEvent(content);
+    emit: (event) => {
+      Publish(event.type, event);
     },
+    bus: {Listen, Publish},
   };
 }
 
-export { createContext, ContextProvider };
+export {createContext, ContextProvider};
