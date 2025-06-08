@@ -1,0 +1,27 @@
+---
+const docs = [
+  { name: "Overview", link: "/overview" },
+  { name: "SporeDrop", link: "/sporedrop" },
+  { name: "Roadmap", link: "/roadmap" },
+];
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>PicnicTS Wiki</title>
+  </head>
+  <body style="max-width: 700px; margin: 3rem auto; font-family: sans-serif;">
+    <h1 style="margin-bottom:2rem;">PicnicTS Documentation</h1>
+    <ul>
+      {docs.map(doc => (
+        <li style="margin:1rem 0;">
+          <a href={doc.link} style="font-size:1.25rem; text-decoration:underline;">
+            {doc.name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
