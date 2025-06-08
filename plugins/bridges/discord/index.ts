@@ -4,8 +4,6 @@ import {Client, GatewayIntentBits} from 'discord.js';
 import type {PluginContext} from '@localtypes/context';
 import type {Bridge} from '@localtypes/plugins'
 
-let bot = null;
-
 class DiscordBridge implements Bridge {
     pluginName = 'bridge';
     bridgeName = 'discord';
@@ -59,10 +57,10 @@ class DiscordBridge implements Bridge {
 
         context.logger.log('[discord_bridge] Logging in...');
         await this.bot.login(token);
-    },
+    }
 
     // listens for internal events like 'discord::message:send'
-    handleEvent (event: any) {
+    async handleEvent (event: any) {
         if (event.type !== 'discord::message:send') return;
 
         const {content, channelId} = event.payload;
@@ -75,13 +73,18 @@ class DiscordBridge implements Bridge {
             return null;
         });
 
-        if (!channel || typeof (channel as any).send !== 'function') {
+        // temp type guard
+        function canSendMessage(channel: unknown): channel is { send: (msg: any) => Promise<any> } {
+            return !!channel && typeof (channel as any).send === "function";
+        }
+
+        if (!canSendMessage(channel)) {
             console.warn('[discord_bridge] cannot find channel for ID:', id);
             return;
         }
 
         if (!content || typeof content !== 'string' || content.trim() === "") {
-            contextRef.logger.warn('[discord_bridge] Invalid content payload:', content);
+            this.contextRef?.logger.warn('[discord_bridge] Invalid content payload:', content);
             return;
         }
         await channel.send({content});

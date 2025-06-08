@@ -63,15 +63,18 @@ All plugins must conform to this interface:
 
 ```ts
 export interface Plugin {
-  name: string;
-  init(context: Context): Promise<void>;
-  handle_event(event: Event): Promise<void> | void;
+  pluginType?: string;
+  init(context: PluginContext): Promise<void>;
+  handleEvent(event: { type: string; [key: string]: unknown }): Promise<void> | void;
   shutdown(): Promise<void>;
 }
 ```
 
+* `pluginType` is optional but recommended (`"bridge"`, `"module"`, etc).
+* Method names are now `init`, `handleEvent`, `shutdown`.
+
 Plugins are loaded dynamically and passed the shared `context` on startup.
-They handle events via `handle_event` and may clean up using `shutdown()`.
+They handle events via `handleEvent` and may clean up using `shutdown()`.
 
 ---
 
@@ -82,19 +85,20 @@ They handle events via `handle_event` and may clean up using `shutdown()`.
 | Name              | Type       | Description                                    |
 | ----------------- | ---------- | ---------------------------------------------- |
 | `createContext()` | `Function` | Returns a shared context object for plugins    |
-| `context.emit()`  | `Function` | Emits events via the EventBus                  |
+| `context.emit()`  | `Function` | Emits event objects to the EventBus            |
 | `context.logger`  | `Logger`   | Provided logger (e.g., console or Pino)        |
 | `context.hostId`  | `string`   | ID string identifying the module host instance |
+| `context.bus`     | `EventBus` | The shared event bus with Listen/Publish       |
 
 ---
 
 ### `core/EventBus.ts`
 
-| Name             | Type                      | Description                      |
-| ---------------- | ------------------------- | -------------------------------- |
-| `subscribe(fn)`  | `(event) => void`         | Register an event listener       |
-| `publish(event)` | `(event: Event) => void`  | Emit an event to all subscribers |
-| `Event`          | `type`, `payload`, `meta` | Standardized system event object |
+| Name      | Type                                                                              | Description                                   |
+| --------- | --------------------------------------------------------------------------------- | --------------------------------------------- |
+| `Listen`  | `(eventType: string, handler: (event: unknown) => void \| Promise<void>) => void` | Register a listener for a specific event type |
+| `Publish` | `(eventType: string, event: unknown) => Promise<void>`                            | Emit an event to all listeners for this type  |
+| `Event`   | `{ type: string; payload: object; meta?: object }`                                | Standardized system event object              |
 
 ---
 
@@ -126,6 +130,36 @@ They handle events via `handle_event` and may clean up using `shutdown()`.
 | `discord_bridge` | `discord::message:send`                       | `discord::message:received`         | Discord.js message bridge    |
 | `mistral_bridge` | `discord::message:received`                   | `discord::message:send` (LLM reply) | Forwards to Go API           |
 | `greeter`        | `hello`                                       | –                                   | Simple debugging plugin      |
+
+---
+
+## **Example EventBus Usage (Updated)**
+
+```ts
+// Register an event handler for a specific event type
+context.bus.Listen("discord::message:send", (event) => { ... });
+
+// Publish an event to all listeners
+context.bus.Publish("discord::message:send", {
+  type: "discord::message:send",
+  payload: { ... },
+  meta: { plugin: "my_plugin" }
+});
+```
+
+---
+
+## **Event Object Standard**
+
+All events passed through the bus must have:
+
+```ts
+{
+  type: string; // The event type (e.g. "discord::message:send")
+  payload: object; // Event-specific data
+  meta?: object;   // Optional metadata
+}
+```
 
 ---
 
