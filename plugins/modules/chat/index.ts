@@ -15,7 +15,7 @@ class ChatModule implements Module {
   // called by plugin manager on startup
   async init (context: PluginContext) {
     this.contextRef = context;
-    //@ts-expect-error
+
     context.logger.log("[ChatModule] Initialized.");
   }
 

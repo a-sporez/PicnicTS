@@ -1,4 +1,5 @@
 // /core/EventBus.ts
+// TODO: define subscribers
 const subscribers: Record<string, Array<(event: unknown) =>
   void | Promise<void>>> = {};
 
